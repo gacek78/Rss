@@ -313,8 +313,17 @@ const COLORS = [
 ];
 
 const DEFAULT_FEEDS = [
-  { url: 'https://hnrss.org/frontpage',             title: 'Hacker News' },
-  { url: 'https://feeds.feedburner.com/TechCrunch', title: 'TechCrunch'  },
+  { url: 'https://www.rmf24.pl/nauka/feed',          title: 'RMF24 Nauka'    },
+  { url: 'https://www.rmf24.pl/fakty/feed',          title: 'RMF24 Fakty'   },
+  { url: 'https://spidersweb.pl/feed',               title: "Spider's Web"   },
+  { url: 'https://niebezpiecznik.pl/feed/',          title: 'Niebezpiecznik' },
+  { url: 'https://feeds.bbci.co.uk/polish/rss.xml', title: 'BBC Polska'     },
+  { url: 'https://www.chip.pl/feed',                 title: 'CHIP'           },
+];
+
+const REMOVED_FEEDS = [
+  'https://hnrss.org/frontpage',
+  'https://feeds.feedburner.com/TechCrunch',
 ];
 
 let feeds = [];
@@ -334,9 +343,16 @@ function saveTxCache() {
 // ---------- Storage ----------
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem('rss_feeds') || 'null');
+    let saved = JSON.parse(localStorage.getItem('rss_feeds') || 'null');
     if (saved && saved.length) {
-      feeds = saved.map(f => ({ ...f, items: [], error: false }));
+      // Usuń przestarzałe kanały
+      saved = saved.filter(f => !REMOVED_FEEDS.includes(f.url));
+      // Dodaj nowe domyślne, których jeszcze nie ma
+      const existing = new Set(saved.map(f => f.url));
+      DEFAULT_FEEDS.forEach(f => { if (!existing.has(f.url)) saved.push(f); });
+      feeds = saved.map((f, i) => ({
+        ...f, color: f.color || COLORS[i % COLORS.length], items: [], error: false
+      }));
     } else {
       feeds = DEFAULT_FEEDS.map((f, i) => ({
         url: f.url, title: f.title, color: COLORS[i % COLORS.length], items: [], error: false

@@ -6,32 +6,25 @@
 <title>RSS Reader</title>
 <style>
 :root {
-  --bg: #f0f4f8;
-  --surface: #ffffff;
-  --surface2: #f7f9fc;
-  --border: #e2e8f0;
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --text: #1e293b;
-  --text2: #64748b;
-  --text3: #94a3b8;
-  --red: #ef4444;
+  --bg: #f0f4f8; --surface: #ffffff; --surface2: #f7f9fc; --border: #e2e8f0;
+  --primary: #3b82f6; --primary-dark: #2563eb; --text: #1e293b; --text2: #64748b;
+  --text3: #94a3b8; --red: #ef4444;
   --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
   --shadow-lg: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
-  --radius: 12px;
-  --sidebar-width: 280px;
+  --radius: 12px; --sidebar-width: 280px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f172a; --surface: #1e293b; --surface2: #162032;
-    --border: #334155; --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
+    --bg: #0f172a; --surface: #1e293b; --surface2: #162032; --border: #334155;
+    --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
     --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 4px 6px rgba(0,0,0,0.3);
   }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  display: flex; flex-direction: column;
 }
 header {
   background: var(--surface); border-bottom: 1px solid var(--border);
@@ -85,10 +78,7 @@ header {
 }
 .add-feed-form input:focus { border-color: var(--primary); }
 .add-feed-form input::placeholder { color: var(--text3); }
-.btn {
-  padding: 8px 14px; border: none; border-radius: 8px;
-  cursor: pointer; font-size: 15px; font-weight: 700; transition: all 0.15s;
-}
+.btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 700; transition: all 0.15s; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-primary:hover { background: var(--primary-dark); }
 .btn-primary:active { transform: scale(0.95); }
@@ -101,18 +91,13 @@ header {
 .feed-item.active { background: #dbeafe; color: #1d4ed8; }
 @media (prefers-color-scheme: dark) { .feed-item.active { background: #1e3a5f; color: #93c5fd; } }
 .feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.feed-name {
-  flex: 1; font-size: 13px; font-weight: 500;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.feed-count {
-  font-size: 11px; color: var(--text3); background: var(--surface2);
-  padding: 1px 6px; border-radius: 10px;
-}
+.feed-name { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed-count { font-size: 11px; color: var(--text3); background: var(--surface2); padding: 1px 6px; border-radius: 10px; }
 .feed-delete {
   width: 24px; height: 24px; border: none; background: none; color: var(--text3);
   cursor: pointer; border-radius: 4px; display: flex; align-items: center;
-  justify-content: center; font-size: 14px; opacity: 0; transition: opacity 0.15s, color 0.15s;
+  justify-content: center; font-size: 14px; opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
 }
 .feed-item:hover .feed-delete { opacity: 1; }
 .feed-delete:hover { color: var(--red); }
@@ -121,58 +106,36 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
 .filter-label { font-size: 15px; font-weight: 700; color: var(--text); }
 .article-count { font-size: 12px; color: var(--text3); margin-left: auto; }
 .articles { display: flex; flex-direction: column; gap: 10px; }
-
-/* Article card */
 .article-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; cursor: pointer;
   transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
-  text-decoration: none; color: inherit;
-  display: flex; gap: 12px; align-items: flex-start;
+  text-decoration: none; color: inherit; display: flex; gap: 12px; align-items: flex-start;
 }
-.article-card:hover {
-  box-shadow: var(--shadow-lg); border-color: var(--primary); transform: translateY(-1px);
-}
+.article-card:hover { box-shadow: var(--shadow-lg); border-color: var(--primary); transform: translateY(-1px); }
 .article-card:active { transform: translateY(0); }
-
 .article-thumb {
   width: 90px; height: 90px; object-fit: cover; border-radius: 8px;
   flex-shrink: 0; background: var(--surface2);
 }
-.article-thumb-placeholder {
-  width: 90px; height: 90px; border-radius: 8px; flex-shrink: 0;
-  background: var(--surface2); display: flex; align-items: center;
-  justify-content: center; font-size: 28px; color: var(--text3);
-}
 .article-body { flex: 1; min-width: 0; }
-.article-meta {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;
-}
+.article-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
 .source-badge {
   font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
-  color: #fff; white-space: nowrap; max-width: 150px;
-  overflow: hidden; text-overflow: ellipsis;
+  color: #fff; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis;
 }
 .article-date { font-size: 11px; color: var(--text3); margin-left: auto; white-space: nowrap; }
-.article-title {
-  font-size: 15px; font-weight: 700; line-height: 1.4;
-  color: var(--text); margin-bottom: 5px;
-}
+.article-title { font-size: 15px; font-weight: 700; line-height: 1.4; color: var(--text); margin-bottom: 5px; }
 .article-desc {
   font-size: 13px; color: var(--text2); line-height: 1.55;
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
-
-/* No thumbnail layout — wider description */
-.article-card.no-thumb .article-desc { -webkit-line-clamp: 3; }
-
 .translate-badge {
   display: inline-block; font-size: 9px; font-weight: 700; color: var(--primary);
   background: #dbeafe; border-radius: 3px; padding: 1px 4px;
   vertical-align: middle; margin-left: 4px; letter-spacing: 0.03em;
 }
 @media (prefers-color-scheme: dark) { .translate-badge { background: #1e3a5f; } }
-
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
 .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
 .empty-state h3 { font-size: 16px; margin-bottom: 6px; color: var(--text2); }
@@ -189,9 +152,7 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
   background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
   border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 10px;
 }
-@media (prefers-color-scheme: dark) {
-  .error-banner { background: #2d1515; border-color: #7f1d1d; color: #fca5a5; }
-}
+@media (prefers-color-scheme: dark) { .error-banner { background: #2d1515; border-color: #7f1d1d; color: #fca5a5; } }
 .toast {
   position: fixed; bottom: 24px; left: 50%;
   transform: translateX(-50%) translateY(80px);
@@ -257,7 +218,12 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
 <div class="toast" id="toast"></div>
 
 <script>
-const PROXY = 'https://api.allorigins.win/raw?url=';
+// CORS proxies tried in order
+const PROXIES = [
+  url => 'https://corsproxy.io/?' + encodeURIComponent(url),
+  url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+];
+
 const TRANSLATE_API = 'https://api.mymemory.translated.net/get';
 
 const COLORS = [
@@ -303,60 +269,73 @@ function saveState() {
   ));
 }
 
-// ---------- Image extraction ----------
-function extractImage(itemEl, descHtml) {
-  // 1. media:thumbnail or media:content
-  const allEls = itemEl.getElementsByTagName('*');
-  for (const el of allEls) {
-    const localName = el.localName || el.nodeName.replace(/.*:/, '');
-    if (localName === 'thumbnail' || localName === 'content') {
-      const url = el.getAttribute('url');
-      if (url && isImageUrl(url, el.getAttribute('type'))) return url;
-    }
-    if (localName === 'enclosure') {
-      const url = el.getAttribute('url');
-      const type = el.getAttribute('type') || '';
-      if (url && type.startsWith('image/')) return url;
+// ---------- Proxy fetch with fallback ----------
+function makeSignal(ms) {
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    return AbortSignal.timeout(ms);
+  }
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
+async function fetchWithFallback(feedUrl) {
+  let lastErr;
+  for (const proxyFn of PROXIES) {
+    try {
+      const res = await fetch(proxyFn(feedUrl), { signal: makeSignal(12000) });
+      if (res.ok) return await res.text();
+      lastErr = new Error('HTTP ' + res.status);
+    } catch (e) {
+      lastErr = e;
     }
   }
-  // 2. First <img> inside the description HTML
-  if (descHtml) {
+  throw lastErr;
+}
+
+// ---------- Image extraction ----------
+function extractImage(itemEl, descRaw) {
+  // Check known image tags (media:thumbnail, media:content, enclosure)
+  const candidates = [
+    ...itemEl.getElementsByTagName('thumbnail'),
+    ...itemEl.getElementsByTagName('content'),
+    ...itemEl.getElementsByTagName('enclosure'),
+  ];
+  for (const el of candidates) {
+    const url = el.getAttribute('url');
+    if (!url) continue;
+    const type = el.getAttribute('type') || '';
+    const name = (el.localName || el.nodeName || '').replace(/.*:/, '');
+    if (name === 'thumbnail') return url;
+    if (type.startsWith('image/')) return url;
+    if (/\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url)) return url;
+  }
+  // Fallback: first <img> in description HTML
+  if (descRaw) {
     try {
       const tmp = document.createElement('div');
-      tmp.innerHTML = descHtml;
+      tmp.innerHTML = descRaw;
       const img = tmp.querySelector('img[src]');
-      if (img) {
-        const src = img.getAttribute('src');
-        if (src && src.startsWith('http')) return src;
-      }
+      const src = img && img.getAttribute('src');
+      if (src && src.startsWith('http')) return src;
     } catch {}
   }
   return null;
 }
 
-function isImageUrl(url, type) {
-  if (type && type.startsWith('image/')) return true;
-  if (/\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url)) return true;
-  return false;
-}
-
 // ---------- Feed parsing ----------
-function cleanDesc(html) {
-  const el = document.createElement('div');
-  el.innerHTML = html;
-  // Remove script/style elements
-  el.querySelectorAll('script,style,img').forEach(e => e.remove());
-  const text = el.textContent.replace(/\s+/g, ' ').trim();
-  if (/^Article URL:/i.test(text)) return '';
-  if (/^https?:\/\/\S+$/.test(text)) return '';
+function cleanDesc(raw) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = raw;
+  tmp.querySelectorAll('script,style,img').forEach(e => e.remove());
+  const text = tmp.textContent.replace(/\s+/g, ' ').trim();
+  if (/^Article URL:/i.test(text) || /^https?:\/\/\S+$/.test(text)) return '';
   return text.slice(0, 600);
 }
 
 async function fetchFeed(feed) {
   try {
-    const res = await fetch(PROXY + encodeURIComponent(feed.url), { signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
+    const text = await fetchWithFallback(feed.url);
     const doc = new DOMParser().parseFromString(text, 'text/xml');
     if (doc.querySelector('parsererror')) throw new Error('Nieprawidłowy XML');
 
@@ -364,13 +343,13 @@ async function fetchFeed(feed) {
     if (isAtom) {
       feed.title = doc.querySelector('feed > title')?.textContent?.trim() || feed.url;
       feed.items = [...doc.querySelectorAll('entry')].slice(0, 40).map(e => {
-        const contentEl = e.querySelector('content, summary');
-        const descHtml = contentEl?.innerHTML || contentEl?.textContent || '';
+        const contentEl = e.querySelector('content') || e.querySelector('summary');
+        const descRaw = contentEl ? contentEl.textContent : '';
         return {
           title:   e.querySelector('title')?.textContent?.trim() || '(bez tytułu)',
           link:    e.querySelector('link[rel="alternate"], link:not([rel])')?.getAttribute('href') || '',
-          desc:    cleanDesc(descHtml),
-          imgUrl:  extractImage(e, descHtml),
+          desc:    cleanDesc(descRaw),
+          imgUrl:  extractImage(e, descRaw),
           date:    new Date(e.querySelector('updated, published')?.textContent || 0),
           feedUrl: feed.url,
         };
@@ -378,14 +357,13 @@ async function fetchFeed(feed) {
     } else {
       feed.title = doc.querySelector('channel > title')?.textContent?.trim() || feed.url;
       feed.items = [...doc.querySelectorAll('item')].slice(0, 40).map(item => {
-        const descEl = item.querySelector('description');
-        const descHtml = descEl?.textContent || descEl?.innerHTML || '';
+        const descRaw = item.querySelector('description')?.textContent || '';
         return {
           title:   item.querySelector('title')?.textContent?.trim() || '(bez tytułu)',
           link:    item.querySelector('link')?.textContent?.trim()
                 || item.getElementsByTagName('link')[0]?.textContent?.trim() || '',
-          desc:    cleanDesc(descHtml),
-          imgUrl:  extractImage(item, descHtml),
+          desc:    cleanDesc(descRaw),
+          imgUrl:  extractImage(item, descRaw),
           date:    new Date(item.querySelector('pubDate')?.textContent || 0),
           feedUrl: feed.url,
         };
@@ -393,7 +371,10 @@ async function fetchFeed(feed) {
     }
     feed.error = false;
   } catch (e) {
-    feed.error = e.name === 'TimeoutError' ? 'Przekroczono czas oczekiwania' : e.message;
+    const name = e && e.name;
+    feed.error = (name === 'AbortError' || name === 'TimeoutError')
+      ? 'Przekroczono czas oczekiwania'
+      : (e && e.message) || 'Błąd połączenia';
     feed.items = [];
   }
 }
@@ -404,8 +385,7 @@ async function fetchAll() {
   await Promise.all(feeds.map(fetchFeed));
   loading = false; setRefreshSpin(false);
   saveState(); renderSidebar();
-  if (translateEnabled) await translateVisible();
-  else renderArticles();
+  if (translateEnabled) await translateVisible(); else renderArticles();
 }
 
 function setRefreshSpin(on) {
@@ -417,8 +397,10 @@ async function translateText(text) {
   if (!text || !text.trim()) return text;
   if (txCache[text] !== undefined) return txCache[text];
   try {
-    const res = await fetch(TRANSLATE_API + '?q=' + encodeURIComponent(text.slice(0, 500)) + '&langpair=en|pl',
-      { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(
+      TRANSLATE_API + '?q=' + encodeURIComponent(text.slice(0, 500)) + '&langpair=en|pl',
+      { signal: makeSignal(8000) }
+    );
     const data = await res.json();
     if (data.responseStatus === 200 && data.responseData?.translatedText) {
       txCache[text] = data.responseData.translatedText;
@@ -435,8 +417,7 @@ async function translateVisible() {
   const uncached = items.filter(item => txCache[item.title] === undefined);
   for (let i = 0; i < uncached.length; i += 5)
     await Promise.all(uncached.slice(i, i + 5).map(item => translateText(item.title)));
-  saveTxCache();
-  translating = false; renderArticles();
+  saveTxCache(); translating = false; renderArticles();
 }
 
 function getDisplayTitle(item) {
@@ -474,23 +455,20 @@ function getAllItems() {
   return feeds.flatMap(f => f.items.map(item => ({ ...item, feedColor: f.color, feedTitle: f.title })));
 }
 function getVisible() {
+  const feed = feeds.find(f => f.url === activeFilter);
   const src = activeFilter === null
     ? getAllItems()
-    : (feeds.find(f => f.url === activeFilter)?.items || []).map(item => ({
-        ...item,
-        feedColor: feeds.find(f => f.url === activeFilter)?.color,
-        feedTitle: feeds.find(f => f.url === activeFilter)?.title,
-      }));
+    : (feed?.items || []).map(item => ({ ...item, feedColor: feed.color, feedTitle: feed.title }));
   return src.sort((a, b) => b.date - a.date);
 }
 
 function fmtDate(date) {
   if (!date || isNaN(date) || date.getTime() === 0) return '';
   const diff = Date.now() - date;
-  if (diff < 60e3)         return 'przed chwilą';
-  if (diff < 3600e3)       return Math.floor(diff / 60e3) + ' min temu';
-  if (diff < 86400e3)      return Math.floor(diff / 3600e3) + ' godz. temu';
-  if (diff < 7 * 86400e3) return Math.floor(diff / 86400e3) + ' dni temu';
+  if (diff < 60e3)        return 'przed chwilą';
+  if (diff < 3600e3)      return Math.floor(diff / 60e3) + ' min temu';
+  if (diff < 86400e3)     return Math.floor(diff / 3600e3) + ' godz. temu';
+  if (diff < 7*86400e3)  return Math.floor(diff / 86400e3) + ' dni temu';
   return date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
@@ -505,19 +483,16 @@ function renderArticles() {
 
   if (loading) {
     container.innerHTML = '<div class="loading"><span class="spinner"></span>Pobieranie artykułów…</div>';
-    articleCount.textContent = '';
-    return;
+    articleCount.textContent = ''; return;
   }
   if (feeds.length === 0) {
     container.innerHTML = '<div class="empty-state"><div class="icon">📡</div><h3>Brak kanałów RSS</h3><p>Dodaj kanał RSS w menu po lewej.</p></div>';
-    articleCount.textContent = '';
-    return;
+    articleCount.textContent = ''; return;
   }
 
   let html = '';
-  feeds.filter(f => f.error && (activeFilter === null || activeFilter === f.url)).forEach(f => {
-    html += `<div class="error-banner">⚠ Błąd: ${esc(f.title)} — ${esc(f.error)}</div>`;
-  });
+  feeds.filter(f => f.error && (activeFilter === null || activeFilter === f.url))
+    .forEach(f => { html += `<div class="error-banner">⚠ Błąd: ${esc(f.title)} — ${esc(f.error)}</div>`; });
 
   if (translating) {
     html += '<div class="loading"><span class="spinner"></span>Tłumaczenie…</div>';
@@ -531,12 +506,11 @@ function renderArticles() {
   } else {
     articleCount.textContent = items.length + ' artykułów';
     html += '<div class="articles">' + items.map(item => {
-      const hasThumb = !!item.imgUrl;
-      const thumbHtml = hasThumb
-        ? `<img class="article-thumb" src="${esc(item.imgUrl)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('no-thumb');this.remove()">`
+      const thumbHtml = item.imgUrl
+        ? `<img class="article-thumb" src="${esc(item.imgUrl)}" alt="" loading="lazy" onerror="this.remove()">`
         : '';
       return `
-      <a class="article-card${hasThumb ? '' : ' no-thumb'}" href="${esc(item.link)}" target="_blank" rel="noopener noreferrer">
+      <a class="article-card" href="${esc(item.link)}" target="_blank" rel="noopener noreferrer">
         ${thumbHtml}
         <div class="article-body">
           <div class="article-meta">
@@ -593,8 +567,7 @@ function closeSidebar() {
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
@@ -606,8 +579,7 @@ document.getElementById('menuBtn').addEventListener('click', () => {
 document.getElementById('overlay').addEventListener('click', closeSidebar);
 document.getElementById('refreshBtn').addEventListener('click', fetchAll);
 document.getElementById('addFeedForm').addEventListener('submit', e => {
-  e.preventDefault();
-  addFeed(document.getElementById('feedInput').value);
+  e.preventDefault(); addFeed(document.getElementById('feedInput').value);
 });
 document.getElementById('translateBtn').addEventListener('click', async () => {
   translateEnabled = !translateEnabled;

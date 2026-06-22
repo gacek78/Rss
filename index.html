@@ -70,13 +70,29 @@ header {
   font-size: 13px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.05em; color: var(--text3); margin-bottom: 12px;
 }
-.add-feed-form { display: flex; gap: 8px; margin-bottom: 16px; }
+.add-feed-form { display: flex; gap: 8px; margin-bottom: 8px; }
 .add-feed-form input {
   flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
   background: var(--surface2); color: var(--text); font-size: 13px; outline: none;
   transition: border-color 0.15s;
 }
 .add-feed-form input:focus { border-color: var(--primary); }
+.discovery-box {
+  margin-bottom: 12px; font-size: 13px;
+}
+.discovery-status { color: var(--text3); padding: 4px 2px; display: flex; align-items: center; gap: 6px; }
+.discovery-status.err { color: var(--red); }
+.discovery-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  background: var(--surface2); border-radius: 8px; margin-top: 6px;
+}
+.discovery-item-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.btn-add-sm {
+  padding: 4px 10px; border: none; border-radius: 6px; background: var(--primary);
+  color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-add-sm:hover { background: var(--primary-dark); }
 .add-feed-form input::placeholder { color: var(--text3); }
 .btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 700; transition: all 0.15s; }
 .btn-primary { background: var(--primary); color: #fff; }
@@ -263,9 +279,10 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
   <aside class="sidebar" id="sidebar">
     <h2>Kana&#322;y RSS</h2>
     <form class="add-feed-form" id="addFeedForm">
-      <input type="url" id="feedInput" placeholder="https://..." autocomplete="off" spellcheck="false">
-      <button type="submit" class="btn btn-primary" aria-label="Dodaj kana&#322;">+</button>
+      <input type="text" id="feedInput" placeholder="np. tvn24.pl lub URL RSS" autocomplete="off" spellcheck="false">
+      <button type="submit" class="btn btn-primary" aria-label="Szukaj / dodaj kana&#322;">+</button>
     </form>
+    <div class="discovery-box" id="discoveryBox" style="display:none"></div>
     <ul class="feed-list" id="feedList"></ul>
   </aside>
 
@@ -718,21 +735,105 @@ function esc(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ---------- Feed management ----------
-function addFeed(url) {
-  url = url.trim();
+// ---------- Feed discovery ----------
+const RSS_TYPES = ['application/rss+xml', 'application/atom+xml', 'text/xml', 'application/xml'];
+const COMMON_PATHS = ['/feed', '/rss', '/feed.xml', '/rss.xml', '/atom.xml', '/feed/rss2', '/rss/feed', '/news/rss'];
+
+function setDiscovery(html) {
+  const box = document.getElementById('discoveryBox');
+  box.innerHTML = html;
+  box.style.display = html ? 'block' : 'none';
+}
+
+async function discoverFeed(rawUrl) {
+  let url = rawUrl.trim();
   if (!url) return;
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  setDiscovery('<div class="discovery-status"><span class="spinner" style="width:14px;height:14px;margin:0"></span> Szukam kanału RSS…</div>');
+
+  // Krok 1: spróbuj URL bezpośrednio jako RSS
+  try {
+    const text = await fetchWithFallback(url, 10000);
+    const xmlDoc = new DOMParser().parseFromString(text, 'text/xml');
+    if (!xmlDoc.querySelector('parsererror') && (xmlDoc.querySelector('channel') || xmlDoc.querySelector('feed'))) {
+      const title = xmlDoc.querySelector('channel > title, feed > title')?.textContent?.trim() || url;
+      setDiscovery('');
+      addFeedDirect(url, title);
+      return;
+    }
+    // Krok 2: HTML — szukaj <link rel="alternate" type="application/rss+xml">
+    const htmlDoc = new DOMParser().parseFromString(text, 'text/html');
+    const links = [...htmlDoc.querySelectorAll('link[rel="alternate"]')]
+      .filter(l => RSS_TYPES.includes(l.getAttribute('type')));
+    if (links.length > 0) {
+      const found = links.map(l => {
+        let href = l.getAttribute('href') || '';
+        try { href = new URL(href, url).href; } catch {}
+        return { url: href, title: l.getAttribute('title') || href };
+      }).filter(f => f.url);
+      showDiscoveryResults(found);
+      return;
+    }
+  } catch {}
+
+  // Krok 3: typowe ścieżki
+  let base = url;
+  try { base = new URL(url).origin; } catch {}
+  for (const path of COMMON_PATHS) {
+    try {
+      const text = await fetchWithFallback(base + path, 6000);
+      const doc = new DOMParser().parseFromString(text, 'text/xml');
+      if (!doc.querySelector('parsererror') && (doc.querySelector('channel') || doc.querySelector('feed'))) {
+        const title = doc.querySelector('channel > title, feed > title')?.textContent?.trim() || base + path;
+        setDiscovery('');
+        addFeedDirect(base + path, title);
+        return;
+      }
+    } catch {}
+  }
+
+  setDiscovery('<div class="discovery-status err">Nie znaleziono kanału RSS dla tej strony.</div>');
+}
+
+let _discovered = [];
+function showDiscoveryResults(found) {
+  _discovered = found;
+  const items = found.map((f, i) =>
+    `<div class="discovery-item">
+       <span class="discovery-item-title" title="${esc(f.url)}">${esc(f.title)}</span>
+       <button class="btn-add-sm" onclick="addDiscoveredItem(${i})">Dodaj</button>
+     </div>`
+  ).join('');
+  setDiscovery(items);
+}
+
+function addDiscoveredItem(i) {
+  const f = _discovered[i];
+  if (!f) return;
+  addFeedDirect(f.url, f.title);
+  setDiscovery('');
+}
+
+// ---------- Feed management ----------
+function addFeedDirect(url, title) {
   if (feeds.find(f => f.url === url)) { showToast('Ten kanał już istnieje'); return; }
   const color = COLORS[feeds.length % COLORS.length];
-  const feed = { url, title: url, color, items: [], error: false };
+  const feed = { url, title: title || url, color, items: [], error: false };
   feeds.push(feed);
   saveState(); renderSidebar(); renderArticles();
   fetchFeed(feed).then(async () => {
     saveState(); renderSidebar();
     if (translateEnabled) await translateVisible(); else renderArticles();
   });
+  showToast('Dodano: ' + (title || url));
+}
+
+function addFeed(rawUrl) {
+  const url = rawUrl.trim();
+  if (!url) return;
   document.getElementById('feedInput').value = '';
+  discoverFeed(url);
 }
 
 function removeFeed(url) {

@@ -7,6 +7,20 @@ function esc(str) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
+// Usuwa inline-style'e, klasy i atrybuty pozycjonujące z treści wyciągniętej
+// przez Readability — oryginalne strony często zostawiają boxy z metadanymi
+// (data publikacji/aktualizacji) i białe tła pozycjonowane absolutnie, które
+// nakładają się na tekst i obrazki w naszym czytniku.
+function sanitizeContent(html) {
+  const tmp = document.createElement('div')
+  tmp.innerHTML = html
+  tmp.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'))
+  tmp.querySelectorAll('[class]').forEach(el => el.removeAttribute('class'))
+  tmp.querySelectorAll('[width]').forEach(el => el.removeAttribute('width'))
+  tmp.querySelectorAll('[height]').forEach(el => el.removeAttribute('height'))
+  return tmp.innerHTML
+}
+
 function loadReadability() {
   if (_readabilityPromise) return _readabilityPromise
   _readabilityPromise = new Promise((resolve, reject) => {
@@ -61,7 +75,7 @@ export async function openReader(item) {
         (dateStr ? ' &middot; ' + dateStr : '') +
         (article.byline ? ' &middot; ' + esc(article.byline) : '') +
       '</div>' +
-      article.content
+      sanitizeContent(article.content)
   } catch {
     body.innerHTML =
       '<div class="reader-error">' +

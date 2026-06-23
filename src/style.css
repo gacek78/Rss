@@ -205,6 +205,9 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
   font-size: 13px; color: var(--text3); margin-bottom: 22px;
   padding-bottom: 18px; border-bottom: 1px solid var(--border);
 }
+/* Neutralizuj pozycjonowanie/tła pozostawione przez oryginalne strony,
+   żeby boxy z metadanymi i białe tła nie nakładały się na treść */
+.reader-body * { position: static !important; float: none !important; max-width: 100% !important; }
 .reader-body p { margin-bottom: 14px; line-height: 1.75; color: var(--text); font-size: 16px; }
 .reader-body h1 { font-size: 20px; font-weight: 700; margin: 20px 0 10px; color: var(--text); }
 .reader-body h2 { font-size: 18px; font-weight: 700; margin: 18px 0 9px; color: var(--text); }

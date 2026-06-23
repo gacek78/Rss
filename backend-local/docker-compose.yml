@@ -5,6 +5,9 @@ services:
     ports:
       - "3001:3000"
     restart: unless-stopped
+    volumes:
+      # Zbudowana apka (npm run build w głównym projekcie) serwowana z tego origin
+      - ../dist:/app/public:ro
     environment:
       - PORT=3000
       # Cookie sesji per-domena (opcjonalnie). Przykład dla NYT — wypełnij w .env:

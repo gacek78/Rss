@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { cors } from 'hono/cors'
 import { parseFeed } from './rss-parser.js'
 import { discoverFeed } from './discovery.js'
@@ -72,6 +73,11 @@ app.get('/api/discover', async c => {
     return c.json({ error: e?.message || 'Discovery failed' }, 502)
   }
 })
+
+// Serwuj zbudowaną apkę (dist/ zamontowane jako ./public) z tego samego origin,
+// żeby telefon mógł otworzyć http://<IP-LAN>:3001 bez problemu mixed content.
+app.use('/*', serveStatic({ root: './public' }))
+app.get('/', serveStatic({ path: './public/index.html' }))
 
 const PORT = Number(process.env.PORT) || 3000
 serve({ fetch: app.fetch, port: PORT, hostname: '0.0.0.0' }, () => {

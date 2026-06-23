@@ -25,11 +25,20 @@ function isHardUrl(url) {
   } catch { return false }
 }
 
-// Wybór backendu dla pobrania pełnej treści artykułu: lokalny dla "trudnych"
-// domen (jeśli skonfigurowany), w przeciwnym razie Workers.
+// Czy apka jest serwowana z lokalnego backendu (nie z GitHub Pages)?
+// Wtedy "trudne" domeny obsługujemy z tego samego origin — bez mixed content.
+function isLocalOrigin() {
+  return !/github\.io$/i.test(location.hostname)
+}
+
+// Wybór backendu dla pobrania pełnej treści artykułu dla "trudnych" domen:
+// 1) jawnie ustawiony adres z pola, 2) same-origin gdy apka serwowana lokalnie,
+// 3) Workers w ostateczności.
 function proxyBase(url) {
+  if (!isHardUrl(url)) return API_BASE
   const local = getLocalBackend()
-  if (local && isHardUrl(url)) return local
+  if (local) return local
+  if (isLocalOrigin()) return location.origin
   return API_BASE
 }
 

@@ -9,7 +9,7 @@ async function fetchText(url, timeoutMs = 10000) {
   try {
     const res = await fetch(url, {
       signal: ac.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RSSReader/2.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
     })
     return await res.text()
   } finally {

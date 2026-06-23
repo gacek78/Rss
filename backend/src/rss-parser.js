@@ -129,7 +129,7 @@ export async function parseFeed(feedUrl) {
   try {
     const res = await fetch(feedUrl, {
       signal: ac.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RSSReader/2.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     body = await res.text()

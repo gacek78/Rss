@@ -232,7 +232,8 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
   border-left: 3px solid var(--primary); margin: 16px 0; padding: 10px 16px;
   background: var(--surface2); border-radius: 0 8px 8px 0; color: var(--text2);
 }
-.reader-body figure { margin: 16px 0; }
+.reader-body figure { margin: 16px 0; display: block; clear: both; width: auto !important; max-width: 100%; }
+.reader-body picture { display: block; }
 .reader-body figcaption { font-size: 12px; color: var(--text3); text-align: center; margin-top: 6px; }
 .reader-body table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 14px; }
 .reader-body th, .reader-body td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }

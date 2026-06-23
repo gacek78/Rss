@@ -18,6 +18,24 @@ function sanitizeContent(html) {
   tmp.querySelectorAll('[class]').forEach(el => el.removeAttribute('class'))
   tmp.querySelectorAll('[width]').forEach(el => el.removeAttribute('width'))
   tmp.querySelectorAll('[height]').forEach(el => el.removeAttribute('height'))
+
+  // Usuń placeholdery reklam zostawione przez Readability (NYT itp.)
+  const AD_TEXT = ['advertisement', 'skip advertisement', 'reklama']
+  tmp.querySelectorAll('p, a, div, span').forEach(el => {
+    if (AD_TEXT.includes(el.textContent.trim().toLowerCase())) el.remove()
+  })
+
+  // Uprość <picture> (responsive z <source>) do zwykłego <img> — picture/source
+  // potrafią psuć układ w czytniku; bierzemy fallback <img> lub pierwszy srcset
+  tmp.querySelectorAll('picture').forEach(pic => {
+    let img = pic.querySelector('img')
+    if (!img) {
+      const src = pic.querySelector('source')?.getAttribute('srcset')?.split(/[ ,]/)[0]
+      if (src) { img = document.createElement('img'); img.src = src }
+    }
+    if (img) pic.replaceWith(img); else pic.remove()
+  })
+
   return tmp.innerHTML
 }
 

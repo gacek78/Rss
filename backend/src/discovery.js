@@ -1,4 +1,3 @@
-import { parse as parseHTML } from 'node-html-parser'
 import { parseFeedFromText } from './rss-parser.js'
 
 const RSS_TYPES = ['application/rss+xml', 'application/atom+xml', 'text/xml', 'application/xml']
@@ -8,20 +7,42 @@ async function fetchText(url, timeoutMs = 10000) {
   const ac = new AbortController()
   const timer = setTimeout(() => ac.abort(), timeoutMs)
   try {
-    const res = await fetch(url, { signal: ac.signal })
+    const res = await fetch(url, {
+      signal: ac.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RSSReader/2.0)' },
+    })
     return await res.text()
   } finally {
     clearTimeout(timer)
   }
 }
 
-async function tryParseFeed(text, url) {
+function tryParseFeed(text, url) {
   try {
-    const result = await parseFeedFromText(text, url)
-    return result
+    return parseFeedFromText(text, url)
   } catch {
     return null
   }
+}
+
+const attr = (tag, name) => {
+  const m = tag.match(new RegExp(`${name}=["']([^"']+)["']`, 'i'))
+  return m ? m[1] : ''
+}
+
+// Szukaj <link rel="alternate" type="application/rss+xml" href="..."> w HTML
+function findFeedLinks(html, baseUrl) {
+  const linkTags = html.match(/<link\b[^>]*>/gi) || []
+  const found = []
+  for (const tag of linkTags) {
+    if (attr(tag, 'rel') !== 'alternate') continue
+    if (!RSS_TYPES.includes(attr(tag, 'type'))) continue
+    let href = attr(tag, 'href')
+    if (!href) continue
+    try { href = new URL(href, baseUrl).href } catch {}
+    found.push({ url: href, title: attr(tag, 'title') || href })
+  }
+  return found
 }
 
 export async function discoverFeed(rawUrl) {
@@ -33,22 +54,12 @@ export async function discoverFeed(rawUrl) {
   try { text = await fetchText(url, 10000) } catch { text = null }
 
   if (text) {
-    const parsed = await tryParseFeed(text, url)
+    const parsed = tryParseFeed(text, url)
     if (parsed) return [{ url, title: parsed.title }]
 
     // Step 2: HTML — look for <link rel="alternate">
-    try {
-      const root = parseHTML(text)
-      const links = root.querySelectorAll('link[rel="alternate"]')
-        .filter(l => RSS_TYPES.includes(l.getAttribute('type')))
-      if (links.length > 0) {
-        return links.map(l => {
-          let href = l.getAttribute('href') || ''
-          try { href = new URL(href, url).href } catch {}
-          return { url: href, title: l.getAttribute('title') || href }
-        }).filter(f => f.url)
-      }
-    } catch {}
+    const links = findFeedLinks(text, url)
+    if (links.length > 0) return links
   }
 
   // Step 3: common paths
@@ -58,7 +69,7 @@ export async function discoverFeed(rawUrl) {
     const candidate = base + path
     try {
       const t = await fetchText(candidate, 6000)
-      const parsed = await tryParseFeed(t, candidate)
+      const parsed = tryParseFeed(t, candidate)
       if (parsed) return [{ url: candidate, title: parsed.title }]
     } catch {}
   }

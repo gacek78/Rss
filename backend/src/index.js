@@ -1,7 +1,5 @@
 import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
 import { cors } from 'hono/cors'
-import { getCached, setCache } from './db.js'
 import { parseFeed } from './rss-parser.js'
 import { discoverFeed } from './discovery.js'
 
@@ -15,13 +13,19 @@ app.get('/api/feed', async c => {
   const url = c.req.query('url')
   if (!url) return c.json({ error: 'Missing url parameter' }, 400)
 
-  const cached = getCached(url)
-  if (cached) return c.json(cached)
+  // Cloudflare edge cache — klucz po pełnym URL zapytania (z ?url=...)
+  const cache = caches.default
+  const cacheKey = new Request(new URL(c.req.url), { method: 'GET' })
+  const hit = await cache.match(cacheKey)
+  if (hit) return hit
 
   try {
     const result = await parseFeed(url)
-    setCache(url, result)
-    return c.json(result)
+    const res = c.json(result)
+    res.headers.set('Cache-Control', 'public, max-age=900') // 15 min
+    // zapis do cache w tle (nie blokuje odpowiedzi)
+    c.executionCtx?.waitUntil(cache.put(cacheKey, res.clone()))
+    return res
   } catch (e) {
     const isTimeout = e?.name === 'AbortError' || e?.name === 'TimeoutError'
     return c.json({ error: isTimeout ? 'Timeout' : (e?.message || 'Fetch failed') }, 502)
@@ -64,7 +68,4 @@ app.get('/api/discover', async c => {
   }
 })
 
-const PORT = Number(process.env.PORT) || 3000
-serve({ fetch: app.fetch, port: PORT }, () => {
-  console.log(`RSS backend running on port ${PORT}`)
-})
+export default app

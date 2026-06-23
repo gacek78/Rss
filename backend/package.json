@@ -1,15 +1,17 @@
 {
   "name": "rss-reader-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "hono": "^4.6.0",
-    "@hono/node-server": "^1.13.0",
-"rss-parser": "^3.13.0",
-    "node-html-parser": "^6.1.0"
+    "fast-xml-parser": "^4.5.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.80.0"
   }
 }

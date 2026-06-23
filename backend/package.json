@@ -1,0 +1,15 @@
+{
+  "name": "rss-reader-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "@hono/node-server": "^1.13.0",
+"rss-parser": "^3.13.0",
+    "node-html-parser": "^6.1.0"
+  }
+}

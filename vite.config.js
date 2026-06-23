@@ -1,9 +1,14 @@
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// /Rss/ only in CI (GitHub Pages); dev server uses /
+const base = process.env.CI ? '/Rss/' : '/'
+
 export default defineConfig({
+  base,
   plugins: [
     VitePWA({
+      base,
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {

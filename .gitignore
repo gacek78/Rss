@@ -5,3 +5,5 @@ backend/cache.db
 .env.local
 .env.production
 backend/.wrangler/
+backend-local/node_modules/
+backend-local/.env

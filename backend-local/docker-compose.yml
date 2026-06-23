@@ -1,0 +1,14 @@
+services:
+  rss-local:
+    build: .
+    container_name: rss-local
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      # Cookie sesji per-domena (opcjonalnie). Przykład dla NYT — wypełnij w .env:
+      #   COOKIE_NYTIMES_COM=nyt-a=...; NYT-S=...; ...
+      - COOKIE_NYTIMES_COM=${COOKIE_NYTIMES_COM:-}
+    env_file:
+      - .env

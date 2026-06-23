@@ -38,12 +38,19 @@ app.get('/api/proxy', async c => {
   try {
     const ac = new AbortController()
     const timer = setTimeout(() => ac.abort(), 18000)
+    // Bogatsze nagłówki przeglądarkowe — zwiększają szansę przejścia ochron anti-bot
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
+    }
+    // Opcjonalne przekazanie cookie zalogowanej sesji (np. NYT-S) dla treści za paywallem,
+    // do której użytkownik ma legalny dostęp. Cookie przekazywane przez nagłówek żądania.
+    const fwdCookie = c.req.header('X-Forward-Cookie')
+    if (fwdCookie) headers['Cookie'] = fwdCookie
     let res
     try {
-      res = await fetch(url, {
-        signal: ac.signal,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
-      })
+      res = await fetch(url, { signal: ac.signal, headers })
     } finally {
       clearTimeout(timer)
     }

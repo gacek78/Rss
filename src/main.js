@@ -1,5 +1,5 @@
 import './style.css'
-import { fetchFeedFromAPI, discoverFeedFromAPI } from './api.js'
+import { fetchFeedFromAPI, discoverFeedFromAPI, getLocalBackend, setLocalBackend } from './api.js'
 import { translateText, getCachedTranslation, saveTxCache } from './translate.js'
 import { openReader, closeReader } from './reader.js'
 
@@ -313,6 +313,14 @@ document.getElementById('overlay').addEventListener('click', closeSidebar)
 document.getElementById('refreshBtn').addEventListener('click', fetchAll)
 document.getElementById('addFeedForm').addEventListener('submit', e => {
   e.preventDefault(); addFeed(document.getElementById('feedInput').value)
+})
+
+// Konfiguracja adresu lokalnego backendu (paywall/NYT)
+const localBackendInput = document.getElementById('localBackendInput')
+localBackendInput.value = getLocalBackend()
+localBackendInput.addEventListener('change', e => {
+  setLocalBackend(e.target.value)
+  showToast(e.target.value.trim() ? 'Lokalny backend zapisany' : 'Lokalny backend wyłączony')
 })
 
 document.getElementById('discoveryBox').addEventListener('click', e => {

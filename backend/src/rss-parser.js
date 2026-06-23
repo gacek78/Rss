@@ -6,6 +6,9 @@ const parser = new XMLParser({
   parseTagValue: false,
   parseAttributeValue: false,
   trimValues: true,
+  // Nie rozwijaj encji w parserze — niektóre feedy (Focus, CHIP) przekraczają
+  // wbudowany limit anty-DoS (1000 encji). Dekodujemy sami w decodeEntities().
+  processEntities: false,
 })
 
 // ---------- helpers ----------
@@ -49,8 +52,8 @@ function pickAtomLink(link) {
   const alt = links.find(l => l?.['@_rel'] === 'alternate')
     || links.find(l => l?.['@_rel'] == null)
     || links[0]
-  if (typeof alt === 'string') return alt
-  return alt?.['@_href'] || ''
+  if (typeof alt === 'string') return decodeEntities(alt)
+  return decodeEntities(alt?.['@_href'] || '')
 }
 
 function extractImage(item) {
@@ -58,17 +61,17 @@ function extractImage(item) {
   if (thumb) {
     const t = toArray(thumb)[0]
     const url = t?.['@_url'] || (typeof t === 'string' ? t : '')
-    if (url.startsWith('http')) return url
+    if (url.startsWith('http')) return decodeEntities(url)
   }
   const mediaContent = item['media:content']
   if (mediaContent) {
     const m = toArray(mediaContent).find(x => /image/i.test(x?.['@_type'] || '') || /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(x?.['@_url'] || ''))
-    if (m?.['@_url']) return m['@_url']
+    if (m?.['@_url']) return decodeEntities(m['@_url'])
   }
   const enc = item.enclosure
   if (enc) {
     const e = toArray(enc).find(x => /image/i.test(x?.['@_type'] || '') || /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(x?.['@_url'] || ''))
-    if (e?.['@_url']) return e['@_url']
+    if (e?.['@_url']) return decodeEntities(e['@_url'])
   }
   const raw = text(item['content:encoded']) || text(item.content) || text(item.description) || text(item.summary)
   const match = raw.match(/<img[^>]+src=["']([^"']+)["']/i)

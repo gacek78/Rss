@@ -318,8 +318,9 @@ document.getElementById('addFeedForm').addEventListener('submit', e => {
 // Konfiguracja adresu lokalnego backendu (paywall/NYT)
 const localBackendInput = document.getElementById('localBackendInput')
 localBackendInput.value = getLocalBackend()
+// zapis na 'input' (od razu przy pisaniu), nie dopiero po opuszczeniu pola
+localBackendInput.addEventListener('input', e => setLocalBackend(e.target.value))
 localBackendInput.addEventListener('change', e => {
-  setLocalBackend(e.target.value)
   showToast(e.target.value.trim() ? 'Lokalny backend zapisany' : 'Lokalny backend wyłączony')
 })
 

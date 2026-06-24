@@ -7,26 +7,18 @@ function esc(str) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-// Usuwa inline-style'e, klasy i atrybuty pozycjonujące z treści wyciągniętej
-// przez Readability — oryginalne strony często zostawiają boxy z metadanymi
-// (data publikacji/aktualizacji) i białe tła pozycjonowane absolutnie, które
-// nakładają się na tekst i obrazki w naszym czytniku.
+// Sprowadza treść z Readability do prostego, blokowego HTML. Strony jak NYT
+// zostawiają zagnieżdżone <div>/<span> z layoutem, responsywne <picture> i
+// placeholdery reklam, które nakładają się na tekst/obrazki w czytniku.
+// Po spłaszczeniu zostają tylko semantyczne bloki — nakładanie jest niemożliwe.
+const KEEP_ATTRS = { IMG: ['src', 'alt'], A: ['href'] }
+const AD_TEXT = ['advertisement', 'skip advertisement', 'reklama']
+
 function sanitizeContent(html) {
   const tmp = document.createElement('div')
   tmp.innerHTML = html
-  tmp.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'))
-  tmp.querySelectorAll('[class]').forEach(el => el.removeAttribute('class'))
-  tmp.querySelectorAll('[width]').forEach(el => el.removeAttribute('width'))
-  tmp.querySelectorAll('[height]').forEach(el => el.removeAttribute('height'))
 
-  // Usuń placeholdery reklam zostawione przez Readability (NYT itp.)
-  const AD_TEXT = ['advertisement', 'skip advertisement', 'reklama']
-  tmp.querySelectorAll('p, a, div, span').forEach(el => {
-    if (AD_TEXT.includes(el.textContent.trim().toLowerCase())) el.remove()
-  })
-
-  // Uprość <picture> (responsive z <source>) do zwykłego <img> — picture/source
-  // potrafią psuć układ w czytniku; bierzemy fallback <img> lub pierwszy srcset
+  // <picture> (responsive) → zwykły <img> (fallback lub pierwszy srcset)
   tmp.querySelectorAll('picture').forEach(pic => {
     let img = pic.querySelector('img')
     if (!img) {
@@ -35,6 +27,22 @@ function sanitizeContent(html) {
     }
     if (img) pic.replaceWith(img); else pic.remove()
   })
+
+  // Usuń placeholdery reklam (puste "Advertisement"/"SKIP ADVERTISEMENT")
+  tmp.querySelectorAll('p, a, div, span').forEach(el => {
+    if (AD_TEXT.includes(el.textContent.trim().toLowerCase())) el.remove()
+  })
+
+  // Zdejmij wszystkie atrybuty poza img[src,alt] i a[href]
+  tmp.querySelectorAll('*').forEach(el => {
+    const keep = KEEP_ATTRS[el.tagName] || []
+    ;[...el.attributes].forEach(attr => {
+      if (!keep.includes(attr.name)) el.removeAttribute(attr.name)
+    })
+  })
+
+  // Rozpłaszcz <div>/<span> do ich dzieci — zostają tylko bloki semantyczne
+  tmp.querySelectorAll('div, span').forEach(el => el.replaceWith(...el.childNodes))
 
   return tmp.innerHTML
 }
@@ -66,34 +74,32 @@ export async function openReader(item) {
   body.scrollTop = 0
 
   try {
-    await loadReadability()
-    const html = await proxyFetch(item.link, 18000)
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(html, 'text/html')
-
-    let base = doc.querySelector('base')
-    if (!base) { base = doc.createElement('base'); doc.head.appendChild(base) }
-    base.href = item.link
-
-    const reader = new Readability(doc, { charThreshold: 20 })
-    const article = reader.parse()
-
-    if (!article?.content || article.content.trim().length < 50) {
-      throw new Error('Nie udało się wyodrębnić treści')
-    }
-
     const dateStr = item.date && !isNaN(item.date) && item.date.getTime() !== 0
       ? item.date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
       : ''
 
+    await loadReadability()
+    const html = await proxyFetch(item.link, 18000)
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    let base = doc.querySelector('base')
+    if (!base) { base = doc.createElement('base'); doc.head.appendChild(base) }
+    base.href = item.link
+    const article = new Readability(doc, { charThreshold: 20 }).parse()
+    if (!article?.content || article.content.trim().length < 50) {
+      throw new Error('Nie udało się wyodrębnić treści')
+    }
+    const title = article.title || item.title
+    const byline = article.byline
+    const content = sanitizeContent(article.content)
+
     body.innerHTML =
-      '<h2 class="reader-article-title">' + esc(article.title || item.title) + '</h2>' +
+      '<h2 class="reader-article-title">' + esc(title) + '</h2>' +
       '<div class="reader-meta">' +
         esc(item.feedTitle) +
         (dateStr ? ' &middot; ' + dateStr : '') +
-        (article.byline ? ' &middot; ' + esc(article.byline) : '') +
+        (byline ? ' &middot; ' + esc(byline) : '') +
       '</div>' +
-      sanitizeContent(article.content)
+      content
   } catch {
     body.innerHTML =
       '<div class="reader-error">' +

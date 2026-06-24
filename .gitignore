@@ -8,3 +8,4 @@ backend/.wrangler/
 backend-local/node_modules/
 backend-local/.env
 .env
+.telegram

@@ -183,6 +183,74 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 @media (prefers-color-scheme: dark) { .toast { background: #f1f5f9; color: #1e293b; } }
 
+/* ===== News Brief ===== */
+.brief-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+.brief-overlay.open { transform: none; }
+.brief-toolbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  height: 56px; display: flex; align-items: center; padding: 0 8px; gap: 4px;
+  flex-shrink: 0; box-shadow: var(--shadow);
+}
+.brief-toolbar-title {
+  flex: 1; font-size: 15px; font-weight: 700; color: var(--text);
+  padding: 0 4px;
+}
+.brief-body {
+  flex: 1; overflow-y: auto;
+  padding: 24px 20px 60px; max-width: 800px; margin: 0 auto; width: 100%;
+}
+.brief-date {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text3); margin-bottom: 20px;
+}
+.brief-section { margin-bottom: 28px; }
+.brief-section-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  padding-bottom: 8px; border-bottom: 2px solid var(--border);
+}
+.brief-section-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.brief-section-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
+.brief-section-count { font-size: 11px; color: var(--text3); margin-left: auto; }
+.brief-item {
+  display: flex; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background 0.12s; border-radius: 4px;
+}
+.brief-item:last-child { border-bottom: none; }
+.brief-item:hover { background: var(--surface2); padding-left: 6px; }
+.brief-item-num {
+  font-size: 12px; font-weight: 700; color: var(--text3);
+  min-width: 20px; padding-top: 2px; text-align: right; flex-shrink: 0;
+}
+.brief-item-content { flex: 1; min-width: 0; }
+.brief-item-title {
+  font-size: 15px; font-weight: 600; line-height: 1.4;
+  color: var(--text); margin-bottom: 4px;
+}
+.brief-item-meta { font-size: 11px; color: var(--text3); }
+.brief-item-desc {
+  font-size: 13px; color: var(--text2); line-height: 1.5; margin-top: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.brief-empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
+.brief-range-bar {
+  display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.brief-range-btn {
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 99px;
+  background: var(--surface); color: var(--text2); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.brief-range-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.brief-range-btn:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+
 /* ===== Reader mode ===== */
 .reader-overlay {
   position: fixed; inset: 0; z-index: 300;
@@ -255,6 +323,12 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
     </svg>
   </button>
   <span class="header-title">&#128225; RSS Reader</span>
+  <button class="icon-btn" id="briefBtn" title="Dzisiejszy brief" aria-label="Dzisiejszy brief">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+      <path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8z"/>
+    </svg>
+  </button>
   <button class="icon-btn translate-btn" id="translateBtn" title="T&#322;umacz EN&#8594;PL" aria-label="T&#322;umacz na polski" aria-pressed="false">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="10"/>
@@ -296,6 +370,19 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Brief overlay -->
+<div class="brief-overlay" id="briefOverlay" role="dialog" aria-modal="true" aria-label="Dzisiejszy brief">
+  <div class="brief-toolbar">
+    <button class="icon-btn" id="briefClose" aria-label="Wróć">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <span class="brief-toolbar-title">&#128240; Dzisiejszy Brief</span>
+  </div>
+  <div class="brief-body" id="briefBody"></div>
+</div>
 
 <!-- Reader overlay -->
 <div class="reader-overlay" id="readerOverlay" role="dialog" aria-modal="true" aria-label="Tryb czytnika">
@@ -908,6 +995,128 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReader(
     const dx = e.changedTouches[0].clientX - sx;
     const dy = Math.abs(e.changedTouches[0].clientY - sy);
     if (dx > 80 && dy < 60) closeReader();
+  }, { passive: true });
+})();
+
+// ---------- Brief ----------
+let _briefRange = 24; // hours
+let _briefArticleItems = [];
+
+function openBrief() {
+  document.getElementById('briefOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderBrief();
+}
+
+function closeBrief() {
+  document.getElementById('briefOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderBrief() {
+  const body = document.getElementById('briefBody');
+  const allItems = getAllItems().sort((a, b) => b.date - a.date);
+
+  const cutoff = Date.now() - _briefRange * 3600e3;
+  let items = _briefRange === 0 ? allItems : allItems.filter(i => i.date && i.date.getTime() > cutoff);
+  if (items.length === 0 && _briefRange !== 0) items = allItems.slice(0, 20);
+
+  _briefArticleItems = items;
+
+  const dateStr = new Date().toLocaleDateString('pl-PL', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  const rangeLabels = [
+    { h: 6,  label: '6 godz.' },
+    { h: 24, label: '24 godz.' },
+    { h: 48, label: '2 dni' },
+    { h: 0,  label: 'Wszystkie' },
+  ];
+  const rangeBar = '<div class="brief-range-bar">' +
+    rangeLabels.map(r =>
+      `<button class="brief-range-btn${_briefRange === r.h ? ' active' : ''}" data-range="${r.h}">${r.label}</button>`
+    ).join('') + '</div>';
+
+  if (items.length === 0) {
+    body.innerHTML = '<div class="brief-date">' + esc(dateStr) + '</div>' + rangeBar +
+      '<div class="brief-empty">Brak artykułów w wybranym przedziale czasu. Kliknij ↺ aby odświeżyć kanały.</div>';
+    attachBriefListeners(body);
+    return;
+  }
+
+  // Group by feed
+  const groups = [];
+  const seen = new Map();
+  items.forEach((item, globalIdx) => {
+    if (!seen.has(item.feedUrl)) {
+      seen.set(item.feedUrl, { title: item.feedTitle, color: item.feedColor, items: [] });
+      groups.push(item.feedUrl);
+    }
+    seen.get(item.feedUrl).items.push({ item, globalIdx });
+  });
+
+  let html = '<div class="brief-date">' + esc(dateStr) + '</div>' + rangeBar;
+
+  groups.forEach(feedUrl => {
+    const group = seen.get(feedUrl);
+    html += '<div class="brief-section">';
+    html += `<div class="brief-section-header">
+      <span class="brief-section-dot" style="background:${esc(group.color)}"></span>
+      <span class="brief-section-name">${esc(group.title)}</span>
+      <span class="brief-section-count">${group.items.length} art.</span>
+    </div>`;
+    group.items.forEach(({ item, globalIdx }, i) => {
+      const dateInfo = item.date && !isNaN(item.date) && item.date.getTime() !== 0
+        ? fmtDate(item.date) : '';
+      const tx = translateEnabled && txCache[item.title];
+      const titleHtml = (tx && tx !== item.title)
+        ? esc(tx) + ' <span class="translate-badge">PL</span>'
+        : esc(item.title);
+      html += `<div class="brief-item" data-bidx="${globalIdx}">
+        <span class="brief-item-num">${i + 1}</span>
+        <div class="brief-item-content">
+          <div class="brief-item-title">${titleHtml}</div>
+          ${dateInfo ? `<div class="brief-item-meta">${esc(dateInfo)}</div>` : ''}
+          ${item.desc ? `<div class="brief-item-desc">${esc(item.desc)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  body.innerHTML = html;
+  attachBriefListeners(body);
+}
+
+function attachBriefListeners(body) {
+  body.querySelectorAll('.brief-range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _briefRange = Number(btn.dataset.range);
+      renderBrief();
+    });
+  });
+  body.querySelectorAll('.brief-item[data-bidx]').forEach(el => {
+    el.addEventListener('click', () => {
+      closeBrief();
+      openReader(parseInt(el.dataset.bidx, 10));
+    });
+  });
+}
+
+document.getElementById('briefBtn').addEventListener('click', openBrief);
+document.getElementById('briefClose').addEventListener('click', closeBrief);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeBrief(); closeReader(); } });
+
+// Swipe right to close brief on mobile
+(function() {
+  let sx = 0, sy = 0;
+  const el = document.getElementById('briefOverlay');
+  el.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = Math.abs(e.changedTouches[0].clientY - sy);
+    if (dx > 80 && dy < 60) closeBrief();
   }, { passive: true });
 })();
 

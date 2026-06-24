@@ -1,0 +1,13 @@
+services:
+  claude-brief:
+    build: .
+    container_name: claude-brief
+    restart: unless-stopped
+    volumes:
+      - ./data:/data        # .claude (cache) + .env (sekrety) — poza obrazem
+      - ./poller.mjs:/app/poller.mjs:ro          # edycja bez rebuildu — wystarczy restart
+      - ./brief-prompt.txt:/app/brief-prompt.txt:ro
+    environment:
+      - CLAUDE_CONFIG_DIR=/data/.claude
+    env_file:
+      - ./data/.env         # CLAUDE_CODE_OAUTH_TOKEN + TELEGRAM_* do środowiska

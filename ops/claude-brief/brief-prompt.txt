@@ -1,0 +1,43 @@
+Zbuduj polski "news brief" i wyślij go na Telegram. Startujesz na zimno — masz tylko Bash + sieć (dostępne: curl, node). Pracuj w katalogu tymczasowym (np. /tmp).
+
+Token bota i chat_id odczytaj z pliku /data/.env (linie TELEGRAM_BOT_TOKEN=... oraz TELEGRAM_CHAT_ID=...). NIE wypisuj tokenu w logach.
+
+KROK 1 — Pobierz feedy. Dla każdego URL z listy wykonaj:
+curl -s --get --data-urlencode "url=<FEED_URL>" "https://rss-backend.gacek78.workers.dev/api/feed"
+Backend zwraca JSON: {title, items:[{title,link,desc,image,pubDate}]}. Do parsowania JSON i kodowania URL użyj node (np. encodeURIComponent).
+Feedy:
+https://www.rmf24.pl/fakty/feed
+https://www.rmf24.pl/nauka/feed
+https://wiadomosci.wp.pl/rss.xml
+https://spidersweb.pl/feed
+https://niebezpiecznik.pl/feed/
+https://www.chip.pl/feed
+https://www.money.pl/rss/wiadomosci.xml
+https://www.bankier.pl/rss/wiadomosci.xml
+https://www.focus.pl/feed
+https://www.national-geographic.pl/feed
+https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml
+https://rss.nytimes.com/services/xml/rss/nyt/Science.xml
+https://rss.nytimes.com/services/xml/rss/nyt/Health.xml
+https://rss.nytimes.com/services/xml/rss/nyt/Business.xml
+
+KROK 2 — Z każdego feeda weź pozycje (title, desc, link, pubDate) z ostatnich ~24h.
+
+KROK 3 — Przesiej ziarno od plew. ODRZUĆ szum: tabele kursów walut, lokalne wypadki/kroniki kryminalne bez znaczenia, sport (chyba że ranga światowa), promocje/poradniki zakupowe, clickbait, duplikaty tej samej historii (zostaw najlepsze źródło). WYBIERZ ~15-20 najważniejszych wg tematów: polityka, technologia, nauka, finanse, medycyna, świat. Oceniaj istotność/wpływ + dopasowanie do tematów + świeżość.
+
+KROK 4 — Dla każdego wybranego napisz DOKŁADNIE 3 zdania PO POLSKU, tak by dało się wyciągnąć wniosek bez wchodzenia w artykuł:
+(1) co się stało / o co chodzi (konkret, nie powtórzenie tytułu),
+(2) kontekst lub tło — dlaczego to istotne, co za tym stoi,
+(3) konsekwencja / co to zmienia / co dalej (skutek, ryzyko, następny krok).
+Pisz treściwie i konkretnie (liczby, nazwiska, stawki), nie ogólnikami. Tytuły NYT przetłumacz na polski; przy NYT dopisz "(NYT, paywall)".
+
+KROK 5 — Zbuduj deep-link do czytnika dla każdego artykułu:
+https://gacek78.github.io/Rss/#read=<URLENC link>&src=<URLENC źródło>
+gdzie URLENC = encodeURIComponent danej wartości.
+
+KROK 6 — Sformatuj jako HTML (parse_mode=HTML; escapuj &,<,> w tekście, ale NIE w tagach <b>/<i>/<a>). Podziel na tyle wiadomości, ile trzeba — KAŻDA musi mieć <4096 znaków (przy 3-zdaniowych pozycjach to zwykle 5-7 wiadomości, to OK). NIGDY nie wysyłaj wiadomości >4096 znaków — jeśli sekcja jest długa, podziel ją na kolejne wiadomości. Układ: (1) nagłówek z datą + "⭐ NA TACY" (5 najważniejszych cross-temat), potem sekcje "🌍 Polityka i świat", "💻 Technologia", "🔬 Nauka", "💰 Finanse", "🩺 Medycyna" (każda może zająć 1+ wiadomości), na końcu stopka z liczbą przesianych artykułów i kanałów.
+Format pozycji: <b>tytuł</b> — <i>źródło</i>\n streszczenie \n <a href="DEEPLINK">📖 czytaj w czytniku</a>
+
+KROK 7 — Wyślij każdą wiadomość (POST JSON; użyj node do bezpiecznego budowania JSON body). Endpoint: https://api.telegram.org/bot<TOKEN>/sendMessage z body {"chat_id":<CHAT_ID>,"text":"...","parse_mode":"HTML","disable_web_page_preview":true} (TOKEN i CHAT_ID z /data/.env).
+Między wiadomościami odczekaj ~0.5s. Po każdym wywołaniu sprawdź pole "ok"; jeśli false — wypisz błąd i napraw formatowanie (najczęstszy problem: niezbalansowane tagi HTML lub nieescapowane znaki). Na końcu napisz krótkie podsumowanie: ile wiadomości wysłano i ile artykułów przesiano.

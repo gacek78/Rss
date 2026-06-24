@@ -320,12 +320,31 @@ document.getElementById('addFeedForm').addEventListener('submit', e => {
 
 // Konfiguracja adresu lokalnego backendu (paywall/NYT)
 const localBackendInput = document.getElementById('localBackendInput')
+const localBackendStatus = document.getElementById('localBackendStatus')
 localBackendInput.value = getLocalBackend()
-// zapis na 'input' (od razu przy pisaniu), nie dopiero po opuszczeniu pola
-localBackendInput.addEventListener('input', e => setLocalBackend(e.target.value))
-localBackendInput.addEventListener('change', e => {
-  showToast(e.target.value.trim() ? 'Lokalny backend zapisany' : 'Lokalny backend wyłączony')
-})
+
+function setLocalStatus(msg, cls) {
+  localBackendStatus.textContent = msg
+  localBackendStatus.className = 'local-status' + (cls ? ' ' + cls : '')
+}
+
+async function saveAndTestLocalBackend() {
+  const addr = localBackendInput.value.trim().replace(/\/+$/, '')
+  setLocalBackend(addr)
+  if (!addr) { setLocalStatus('Lokalny backend wyłączony'); showToast('Lokalny backend wyłączony'); return }
+  setLocalStatus('Sprawdzam połączenie…')
+  try {
+    const res = await fetch(`${addr}/health`, { signal: AbortSignal.timeout(6000) })
+    const data = await res.json()
+    if (data?.ok) { setLocalStatus('✓ Połączono — pełne artykuły aktywne', 'ok'); showToast('Lokalny backend zapisany') }
+    else throw new Error('zła odpowiedź')
+  } catch {
+    setLocalStatus('✗ Brak połączenia — sprawdź adres i czy kontener działa', 'err')
+  }
+}
+
+document.getElementById('localBackendSave').addEventListener('click', saveAndTestLocalBackend)
+localBackendInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveAndTestLocalBackend() } })
 
 document.getElementById('discoveryBox').addEventListener('click', e => {
   const btn = e.target.closest('[data-di]')

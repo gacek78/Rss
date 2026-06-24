@@ -51,7 +51,11 @@
 
     <div class="local-backend">
       <h2>Lokalny backend (paywall)</h2>
-      <input type="text" id="localBackendInput" placeholder="http://localhost:3001" autocomplete="off" spellcheck="false">
+      <div class="local-backend-row">
+        <input type="text" id="localBackendInput" placeholder="http://localhost:3001" autocomplete="off" spellcheck="false">
+        <button type="button" class="btn btn-primary" id="localBackendSave">Zatwierdź</button>
+      </div>
+      <p class="local-status" id="localBackendStatus"></p>
       <p class="local-hint">Do pełnych artykułów za paywallem (np. NYT). Na telefonie wpisz adres IP komputera w sieci domowej, np. <code>http://192.168.1.10:3001</code></p>
     </div>
   </aside>

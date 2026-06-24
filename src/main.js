@@ -19,6 +19,9 @@ const DEFAULT_FEEDS = [
   { url: 'https://www.bankier.pl/rss/wiadomosci.xml', title: 'Bankier.pl'              },
   { url: 'https://www.focus.pl/feed',                 title: 'Focus'                   },
   { url: 'https://www.national-geographic.pl/feed',   title: 'National Geographic PL'  },
+  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',   title: 'NYT HomePage'   },
+  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',      title: 'NYT World'      },
+  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml', title: 'NYT Technology' },
 ]
 
 const REMOVED_FEEDS = [

@@ -114,4 +114,8 @@ export async function openReader(item) {
 export function closeReader() {
   document.getElementById('readerOverlay').classList.remove('open')
   document.body.style.overflow = ''
+  // Wyczyść hash deep-linku, żeby zamknięcie nie otwierało artykułu ponownie
+  if (location.hash.startsWith('#read=')) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
 }

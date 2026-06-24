@@ -390,7 +390,23 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReader(
   }, { passive: true })
 })()
 
+// ---------- Deep-link do czytnika (#read=<url>&src=<źródło>) ----------
+// Pozwala otworzyć czysty czytnik prosto z linku (np. z briefu na Telegramie),
+// bez wchodzenia na stronę źródłową.
+function openFromHash() {
+  const m = location.hash.match(/^#read=([^&]+)(?:&src=([^&]+))?/)
+  if (!m) return
+  let url, src
+  try { url = decodeURIComponent(m[1]) } catch { return }
+  if (!/^https?:\/\//i.test(url)) return
+  if (m[2]) { try { src = decodeURIComponent(m[2]) } catch {} }
+  if (!src) { try { src = new URL(url).hostname.replace(/^www\./, '') } catch { src = 'Artykuł' } }
+  openReader({ link: url, feedTitle: src, date: null })
+}
+window.addEventListener('hashchange', openFromHash)
+
 // ---------- Init ----------
 loadState()
 renderSidebar()
 fetchAll()
+openFromHash()

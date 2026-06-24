@@ -1,9 +1,30 @@
 # Plan: Claude Code na OMV → news brief na żądanie (/brief z telefonu) + 13:30
 
-> Dokument do realizacji w osobnej sesji. Spisany 2026-06-24.
-> Cel: postawić na OpenMediaVault (NAS, 24/7) kontener z **Claude Code**, który
-> daje brief **na żądanie z telefonu** (piszesz `/brief` do bota) **bez laptopa
-> i bez kosztów API** — Claude Code loguje się Twoją **subskrypcją**, nie API.
+> Spisany 2026-06-24. Cel: na OpenMediaVault (NAS, 24/7) kontener z **Claude Code**,
+> który daje brief **na żądanie z telefonu** (`/brief` do bota) **bez laptopa i bez
+> kosztów API** — Claude Code uwierzytelnia się Twoją **subskrypcją**, nie API.
+
+## ✅ STATUS: ZROBIONE (2026-06-24) — działa, `/brief` zwraca brief
+
+Wdrożone na OMV (`gacek@192.168.88.8`, dostęp plink/pscp z PuTTY; hasła w repo
+`homelab-proxy`). Kontener `claude-brief` w `/compose/claude-brief/`. Korekty wobec
+pierwotnego planu poniżej (różnice wyszły w trakcie):
+
+1. **Auth ≠ login, tylko token w env.** `claude setup-token` NIE zapisuje logowania —
+   **wypisuje** token `sk-ant-oat01-...` (ważny 1 rok). Ten token idzie jako
+   `CLAUDE_CODE_OAUTH_TOKEN` do `/compose/claude-brief/data/.env` (ładowany przez
+   `env_file:` w compose). `auth status` pokaże `loggedIn:false` — to normalne, auth
+   leci z env, nie z keychain.
+2. **NIE `--dangerously-skip-permissions`** — jest blokowane dla roota (kontener działa
+   jako root). Użyto **`--allowedTools "Bash Edit Write Read Glob Grep"`** (omija to
+   ograniczenie i daje autonomię do briefu).
+3. **Lokalny 13:30 wyłączony** (`ENABLE_DAILY=false`) — robi to rutyna w chmurze. OMV = on-demand.
+4. **Rotacja tokenu:** token z tej sesji wyciekł do czatu → wygenerować nowy `setup-token`,
+   podmienić w `data/.env` (`sed -i '/^CLAUDE_CODE_OAUTH_TOKEN=/d' …` + `printf … >> …`),
+   `docker compose up -d --force-recreate`. Token sk-ant-oat01 ma ~105–110 znaków
+   (uwaga na ucięcie przy wklejaniu → objaw: 401 Invalid bearer token).
+
+Poniższy plan to oryginalny projekt — czytaj go przez pryzmat korekt powyżej.
 
 ---
 
@@ -116,8 +137,8 @@ function runBrief(reason) {
   if (running) { tg('⏳ Brief już się robi, chwila…'); return }
   running = true
   tg(`⏳ Robię brief (${reason})…`)
-  // Kontener jest izolowany → pełna autonomia narzędzi jest OK
-  const p = spawn('claude', ['-p', PROMPT, '--dangerously-skip-permissions'],
+  // --allowedTools zamiast --dangerously-skip-permissions (ta druga blokowana dla roota)
+  const p = spawn('claude', ['-p', PROMPT, '--allowedTools', 'Bash Edit Write Read Glob Grep'],
                   { stdio: 'inherit', env: { ...process.env } })
   p.on('exit', code => {
     running = false

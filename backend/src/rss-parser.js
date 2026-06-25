@@ -45,6 +45,21 @@ function stripHtml(raw) {
   ).replace(/\s+/g, ' ').trim()
 }
 
+// Wybierz najbogatszy opis spośród dostępnych pól. Wiele feedów trzyma w
+// <description>/<summary> tylko krótką zajawkę (czasem = sam tytuł), a pełną
+// treść w <content:encoded>/<content>. Bierzemy najdłuższy po oczyszczeniu z
+// HTML — dzięki temu streszczenia (news brief) mają realny materiał, a nie
+// powtórzenie tytułu. Front i tak przycina zajawkę CSS-em (line-clamp), więc
+// dłuższy desc nie zmienia wyglądu listy.
+function richestDesc(...candidates) {
+  let best = ''
+  for (const c of candidates) {
+    const s = stripHtml(text(c))
+    if (s.length > best.length) best = s
+  }
+  return best.slice(0, 1500)
+}
+
 // Atom: link może być pojedynczy lub tablica; wybierz rel="alternate" lub bez rel
 function pickAtomLink(link) {
   const links = toArray(link)
@@ -81,11 +96,10 @@ function extractImage(item) {
 
 function normalizeRss(channel, feedUrl) {
   const items = toArray(channel.item).slice(0, 40).map(item => {
-    const descRaw = text(item.description) || text(item['content:encoded'])
     return {
       title: text(item.title) || '(bez tytułu)',
       link: text(item.link) || text(item.guid) || '',
-      desc: stripHtml(descRaw).slice(0, 600),
+      desc: richestDesc(item.description, item['content:encoded']),
       image: extractImage(item),
       pubDate: text(item.pubDate) || null,
       feedUrl,
@@ -96,11 +110,10 @@ function normalizeRss(channel, feedUrl) {
 
 function normalizeAtom(feed, feedUrl) {
   const items = toArray(feed.entry).slice(0, 40).map(entry => {
-    const descRaw = text(entry.content) || text(entry.summary)
     return {
       title: text(entry.title) || '(bez tytułu)',
       link: pickAtomLink(entry.link),
-      desc: stripHtml(descRaw).slice(0, 600),
+      desc: richestDesc(entry.content, entry.summary),
       image: extractImage(entry),
       pubDate: text(entry.updated) || text(entry.published) || null,
       feedUrl,

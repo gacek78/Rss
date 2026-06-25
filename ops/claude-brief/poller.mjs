@@ -69,8 +69,9 @@ async function poll() {
   }
 }
 
-// Lokalny 13:30 wyłączony — robi to rutyna w chmurze. Włączyć tylko jeśli wyłączysz chmurę.
-const ENABLE_DAILY = false
+// Codzienny 13:30 leci z OMV (zastąpił chmurową rutynę). Strefa czasu z TZ=Europe/Warsaw
+// w docker-compose.yml → setHours(13,30) to 13:30 czasu warszawskiego, DST automatyczny.
+const ENABLE_DAILY = true
 function scheduleDaily() {
   if (!ENABLE_DAILY) return
   const now = new Date()

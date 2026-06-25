@@ -61,9 +61,22 @@ atrybuty poza `img[src,alt]`/`a[href]`, zamienia `<picture>`→`<img>`, usuwa pl
 
 ## News brief (agent AI)
 - Skill: `~/.claude/skills/news-brief/SKILL.md` — przesiewa feedy przez Workers, ocenia wg tematów (polityka/technologia/nauka/finanse/medycyna/świat), odrzuca szum, brief PL z deep-linkami.
-- Rutyna w chmurze: id `trig_018crUPik9HKaic1AyqKDwvZ`, cron `30 11 * * *` UTC = **13:30 Warsaw** (lato). **DST:** po zmianie na czas zimowy zmień na `30 12 * * *`.
-- Telegram: bot `@mynews_claude_bot`, chat_id `1931525385`. Token+chat_id w `C:\projekty\rss\.telegram` (gitignored). Wysyłka: HTML, `disable_web_page_preview`, dziel <4096 zn.
-- Plan rozbudowy (Claude Code na OMV dla `/brief` z telefonu): `docs/omv-news-brief-setup.md`.
+- Codzienny brief o **13:30** leci z **OMV** (kontener `claude-brief`), nie z chmury. Mechanizm: wbudowany scheduler w `ops/claude-brief/poller.mjs` (`ENABLE_DAILY = true` + `scheduleDaily()`). Strefa czasu z `TZ=Europe/Warsaw` w `docker-compose.yml` → DST automatyczny (koniec ręcznego przesuwania crona). Stara chmurowa rutyna `trig_018crUPik9HKaic1AyqKDwvZ` jest **wyłączona** (`enabled:false`; API rutyn nie ma hard-delete) — zarządzasz nią narzędziem `RemoteTrigger` (`get`/`update`).
+- Telegram: bot `@mynews_claude_bot`. Brief idzie na **dwa cele**: prywatny czat `chat_id 1931525385` (`TELEGRAM_CHAT_ID`) **i** publiczny kanał `@na_tacy` (`TELEGRAM_CHANNEL_ID`, `chat_id="@na_tacy"`) — bot musi być **adminem kanału** z prawem „Post Messages". Notyfikacje statusu („⏳ Robię brief…", błędy) lecą tylko na prywatny czat. Sekrety w `C:\projekty\rss\.telegram` (gitignored) → na OMV w `/data/.env`. Wysyłka: HTML, `disable_web_page_preview`, dziel <4096 zn.
+- Setup OMV (kontener, scheduler, `/brief` z telefonu): `docs/omv-news-brief-setup.md`.
+
+## OMV — deploy i dostęp (brief)
+Tu mieszka cała „produkcja" briefu — zaczynaj stąd, zamiast czytać wszystkie pliki.
+- **Co gdzie:** kontener `claude-brief` w `/compose/claude-brief/` na OMV (NIE git — pliki kopiowane przez pscp). Bind-mounty (`docker-compose.yml`): `poller.mjs` + `brief-prompt.txt` jako `:ro`, oraz `data/` (zawiera `.env` z sekretami i `.claude` = auth Claude Code). `poller.mjs` long-polluje Telegram (`getUpdates`) i na `/brief` od autoryzowanego `chat_id` spawnuje `claude -p "$(brief-prompt.txt)" --allowedTools "Bash Edit Write Read Glob Grep"`; całą robotę (feedy→triage→wysyłka) robi Claude wg `brief-prompt.txt`.
+- **Dostęp do OMV** (host, hasła, plink/pscp): repo `C:\projekty\homelab-proxy` (jego `CLAUDE.md`). Skrót: `gacek@192.168.88.8`, narzędzia `C:\Program Files\PuTTY\{plink,pscp}.exe`, akceptacja klucza: `echo y | plink -ssh -pw <hasło> …`.
+- **Deploy zmiany w briefie:** skopiuj zmienione pliki na OMV i **zrekreuj** kontener:
+  ```bash
+  pscp ops/claude-brief/{poller.mjs,brief-prompt.txt,docker-compose.yml} → /compose/claude-brief/
+  ssh OMV: cd /compose/claude-brief && docker compose up -d   # recreate — sam `restart` NIE zaciągnie zmian w compose/.env
+  ```
+  Pliki `:ro` (poller/prompt) działają od razu po recreate; zmiana `docker-compose.yml`/`.env` **wymaga** `up -d`.
+- **`.env` na OMV** (`/compose/claude-brief/data/.env`, chmod 600): klucze `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_CHANNEL_ID`, `CLAUDE_CODE_OAUTH_TOKEN`. NIGDY nie wypisuj wartości tokenów do logów/czatu (czytaj server-side). `CLAUDE_CODE_OAUTH_TOKEN` z `claude setup-token` (~105–110 zn, ważny rok); `auth status` pokaże `loggedIn:false` — to normalne (auth z env).
+- **Diagnostyka/test:** `docker logs --tail=20 claude-brief`, `docker exec claude-brief date` (ma być czas warszawski). Brief jednorazowo (poza `/brief`): `docker exec -d claude-brief bash -lc 'claude -p "$(cat /app/brief-prompt.txt)" --allowedTools "Bash Edit Write Read Glob Grep" > /data/x.log 2>&1'` — w `-p` log zapełnia się dopiero na końcu (sukces = `EXIT_CODE=0`).
 
 ## Sekrety — NIGDY do repo
 Gitignored i NIE commitować: `.env`, `backend-local/.env` (cookie NYT-S), `.telegram` (token bota),

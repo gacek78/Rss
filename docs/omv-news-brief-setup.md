@@ -18,7 +18,12 @@ pierwotnego planu poniżej (różnice wyszły w trakcie):
 2. **NIE `--dangerously-skip-permissions`** — jest blokowane dla roota (kontener działa
    jako root). Użyto **`--allowedTools "Bash Edit Write Read Glob Grep"`** (omija to
    ograniczenie i daje autonomię do briefu).
-3. **Lokalny 13:30 wyłączony** (`ENABLE_DAILY=false`) — robi to rutyna w chmurze. OMV = on-demand.
+3. **Lokalny 13:30 WŁĄCZONY** (`ENABLE_DAILY=true`, aktualizacja 2026-06-25) — codzienny brief
+   przeniesiony z chmury na OMV; chmurowa rutyna `trig_018crUPik9HKaic1AyqKDwvZ` usunięta. Strefa
+   czasu z `TZ=Europe/Warsaw` w compose → `scheduleDaily()` liczy 13:30 czasu warszawskiego, DST
+   automatyczny. Brief idzie teraz na **dwa cele**: prywatny czat (`TELEGRAM_CHAT_ID`) + publiczny
+   kanał (`TELEGRAM_CHANNEL_ID=@na_tacy`, bot = admin kanału) — pętla w KROK 7 `brief-prompt.txt`.
+   Po zmianie `compose`/`.env` recreate: `docker compose up -d` (sam `restart` nie zaciągnie TZ/env).
 4. **Rotacja tokenu:** token z tej sesji wyciekł do czatu → wygenerować nowy `setup-token`,
    podmienić w `data/.env` (`sed -i '/^CLAUDE_CODE_OAUTH_TOKEN=/d' …` + `printf … >> …`),
    `docker compose up -d --force-recreate`. Token sk-ant-oat01 ma ~105–110 znaków

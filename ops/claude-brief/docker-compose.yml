@@ -9,5 +9,6 @@ services:
       - ./brief-prompt.txt:/app/brief-prompt.txt:ro
     environment:
       - CLAUDE_CONFIG_DIR=/data/.claude
+      - TZ=Europe/Warsaw     # harmonogram 13:30 w poller.mjs liczy się wg czasu warszawskiego (DST auto)
     env_file:
       - ./data/.env         # CLAUDE_CODE_OAUTH_TOKEN + TELEGRAM_* do środowiska

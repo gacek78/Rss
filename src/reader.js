@@ -11,12 +11,42 @@ function esc(str) {
 // zostawiają zagnieżdżone <div>/<span> z layoutem, responsywne <picture> i
 // placeholdery reklam, które nakładają się na tekst/obrazki w czytniku.
 // Po spłaszczeniu zostają tylko semantyczne bloki — nakładanie jest niemożliwe.
-const KEEP_ATTRS = { IMG: ['src', 'alt'], A: ['href'] }
+const KEEP_ATTRS = { IMG: ['src', 'alt'], A: ['href', 'target', 'rel'] }
 const AD_TEXT = ['advertisement', 'skip advertisement', 'reklama']
+
+// Mapuje src osadzonego <iframe> (YouTube/Spotify/Vimeo) na kanoniczny link „do obejrzenia".
+// Embeddy i tak nie odpalą się w czytniku — zamiast znikać, zostają klikalnym linkiem.
+function embedToLink(rawSrc) {
+  let src = (rawSrc || '').trim()
+  if (!src) return null
+  if (src.startsWith('//')) src = 'https:' + src
+  let m
+  if ((m = src.match(/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/|youtube\.com\/watch\?v=)([\w-]{6,})/i)))
+    return { href: 'https://www.youtube.com/watch?v=' + m[1], label: '▶ Obejrzyj na YouTube' }
+  if ((m = src.match(/open\.spotify\.com\/(?:embed\/)?(\w+\/[\w]+)/i)))
+    return { href: 'https://open.spotify.com/' + m[1], label: '▶ Posłuchaj na Spotify' }
+  if ((m = src.match(/player\.vimeo\.com\/video\/(\d+)/i)))
+    return { href: 'https://vimeo.com/' + m[1], label: '▶ Obejrzyj na Vimeo' }
+  return null
+}
 
 function sanitizeContent(html) {
   const tmp = document.createElement('div')
   tmp.innerHTML = html
+
+  // Rozpoznane embeddy (YouTube/Spotify/Vimeo) → klikalny link, ZANIM iframe zniknie niżej.
+  tmp.querySelectorAll('iframe[src]').forEach(fr => {
+    const link = embedToLink(fr.getAttribute('src'))
+    if (!link) return
+    const a = document.createElement('a')
+    a.href = link.href
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    a.textContent = link.label
+    const p = document.createElement('p')
+    p.appendChild(a)
+    fr.replaceWith(p)
+  })
 
   // Usuń elementy nie-treściowe RAZEM z zawartością. Kluczowe: <style> przeżywał
   // (zdejmujemy atrybuty i płaszczymy div/span, ale nie kasowaliśmy samego taga),
@@ -34,6 +64,13 @@ function sanitizeContent(html) {
     if (img) pic.replaceWith(img); else pic.remove()
   })
 
+  // Usuń obrazki-placeholdery z data: src (spacery, piksele trackujące, szary
+  // „Video placeholder" NatGeo) — nigdy nie są realną treścią. Pusty wrapper po nich
+  // zniknie przy rozpłaszczaniu div/span niżej.
+  tmp.querySelectorAll('img').forEach(img => {
+    if ((img.getAttribute('src') || '').trim().toLowerCase().startsWith('data:')) img.remove()
+  })
+
   // Usuń placeholdery reklam (puste "Advertisement"/"SKIP ADVERTISEMENT")
   tmp.querySelectorAll('p, a, div, span').forEach(el => {
     if (AD_TEXT.includes(el.textContent.trim().toLowerCase())) el.remove()
@@ -49,6 +86,11 @@ function sanitizeContent(html) {
 
   // Rozpłaszcz <div>/<span> do ich dzieci — zostają tylko bloki semantyczne
   tmp.querySelectorAll('div, span').forEach(el => el.replaceWith(...el.childNodes))
+
+  // Wyrzuć puste <figure> osierocone po usuniętym medium (sam margines, bez treści)
+  tmp.querySelectorAll('figure').forEach(fig => {
+    if (!fig.querySelector('img, video, picture, table, a') && !fig.textContent.trim()) fig.remove()
+  })
 
   return tmp.innerHTML
 }

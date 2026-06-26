@@ -113,10 +113,14 @@ export async function openReader(item) {
   const body = document.getElementById('readerBody')
   const source = document.getElementById('readerSource')
   const extLink = document.getElementById('readerExternal')
+  const wasOpen = overlay.classList.contains('open')
 
   source.textContent = item.feedTitle
   extLink.href = item.link
   overlay.classList.add('open')
+  // Dorzuć wpis do historii, by sprzętowy/przeglądarkowy Wstecz zamykał czytnik
+  // (a nie wychodził ze strony). Tylko gdy czytnik nie był już otwarty.
+  if (!wasOpen) history.pushState({ reader: true }, '')
   document.body.style.overflow = 'hidden'
   body.innerHTML = '<div class="reader-loading"><span class="spinner"></span>Wczytywanie artykułu…</div>'
   body.scrollTop = 0
@@ -159,7 +163,17 @@ export async function openReader(item) {
   }
 }
 
+// Zamknięcie z UI (przycisk „Wróć”/Esc/swipe): jeśli otwarcie dorzuciło wpis do
+// historii, cofnij się — `popstate` (w main.js) domknie czytnik. Dzięki temu URL
+// zostaje czysty i zachowanie jest spójne ze sprzętowym Wstecz.
 export function closeReader() {
+  if (history.state?.reader) { history.back(); return }
+  closeReaderNow()
+}
+
+// Faktyczne domknięcie czytnika. Wołane bezpośrednio z `popstate` (Wstecz) oraz
+// przez closeReader() gdy nie było wpisu w historii (np. otwarcie bez pushState).
+export function closeReaderNow() {
   document.getElementById('readerOverlay').classList.remove('open')
   document.body.style.overflow = ''
   // Wyczyść hash deep-linku, żeby zamknięcie nie otwierało artykułu ponownie

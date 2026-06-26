@@ -1,7 +1,7 @@
 import './style.css'
 import { fetchFeedFromAPI, discoverFeedFromAPI } from './api.js'
 import { translateText, getCachedTranslation, saveTxCache } from './translate.js'
-import { openReader, closeReader } from './reader.js'
+import { openReader, closeReader, closeReaderNow } from './reader.js'
 
 const COLORS = [
   '#3b82f6','#8b5cf6','#ec4899','#f97316','#10b981',
@@ -377,6 +377,12 @@ function openFromHash() {
   openReader({ link: url, feedTitle: src, date: null })
 }
 window.addEventListener('hashchange', openFromHash)
+
+// Sprzętowy/przeglądarkowy Wstecz: zdejmuje wpis dodany przy otwarciu czytnika →
+// domykamy czytnik i zostajemy na liście, zamiast wychodzić ze strony.
+window.addEventListener('popstate', () => {
+  if (document.getElementById('readerOverlay').classList.contains('open')) closeReaderNow()
+})
 
 // ---------- Init ----------
 loadState()

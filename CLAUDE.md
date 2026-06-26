@@ -18,8 +18,8 @@ GitHub Actions ustawia `CI=true` samo. Lokalnie pamiętaj o rozróżnieniu.
 ```bash
 # Frontend
 npm run dev                      # Vite dev :5173
-CI=true npx vite build           # build dla GitHub Pages (/Rss/)
-npx vite build                   # build dla lokalnego backendu (/)
+CI=true npx vite build           # build dla GitHub Pages (base /Rss/)
+npx vite build                   # build z base / (dev/preview)
 
 # Backend Workers
 cd backend && npx wrangler dev   # :8787
@@ -35,6 +35,8 @@ cd backend && npx wrangler deploy
 - Używa **`fast-xml-parser`** (pure-JS, działa na Workers). NIE `rss-parser` (Node-only — nie działa na Workers).
 - `processEntities: false` + własny `decodeEntities()` — bo feedy Focus/CHIP przekraczają wbudowany limit 1000 encji (dawały 502).
 - Obsługuje RSS, Atom, RDF. Kształt wyjścia: `{ title, feedUrl, items:[{title,link,desc,image,pubDate,feedUrl}], cachedAt }`. **Nie zmieniaj kształtu** — front (`src/main.js fetchFeed`) na nim polega.
+- `richestDesc()` bierze najbogatsze pole opisu (`content:encoded`/`content` nad krótką zajawką `description`/`summary`) i przycina do 1500 zn — dzięki temu zajawka ma realną treść (front i tak ją skraca CSS-em `line-clamp`).
+- `/api/feed` cache'uje 15 min (`Cache-Control: max-age=900`, Cloudflare Cache API). Endpointy backendu: `/api/feed`, `/api/discover`, `/api/proxy`, `/health`.
 - Kopia parsera żyje też w osobnym repo `news-brief` (`lib/rss-parser.mjs`) — zmieniasz logikę, zaktualizuj tam też.
 
 ## sanitizeContent (`src/reader.js`) — czemu istnieje

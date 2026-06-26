@@ -58,5 +58,9 @@ cd backend && npm install && npx wrangler dev
 - **Frontend:** push na branch `v2` → GitHub Actions (`.github/workflows/deploy-v2.yml`) buduje Vite i publikuje `dist/` na GitHub Pages. Wymaga zmiennej repo `VITE_API_URL`.
 - **Backend Workers:** `cd backend && npx wrangler deploy`.
 
+## Powiązane
+Bot „news brief" na Telegramie (selekcja RSS przez AI) został wydzielony do osobnego,
+samodzielnego repozytorium **`news-brief`** — to repo jest już wyłącznie czytnikiem.
+
 ## Licencja / status
 Projekt osobisty. Aktywny development na branchu `v2` (zastąpił `main`).

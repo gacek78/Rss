@@ -224,7 +224,10 @@ main { flex: 1; padding: 20px 16px; min-width: 0; }
 }
 /* Neutralizuj pozycjonowanie/tła pozostawione przez oryginalne strony,
    żeby boxy z metadanymi i białe tła nie nakładały się na treść */
-.reader-body * { position: static !important; float: none !important; max-width: 100% !important; }
+.reader-body * { position: static !important; float: none !important; max-width: 100% !important; writing-mode: horizontal-tb !important; transform: none !important; }
+/* Wymuś naturalną szerokość na blokach tekstowych — broni przed „wąską kolumną"
+   (stałe width z resztkowego CSS strony), która łamała tytuł w pionie i nakładała go na treść. */
+.reader-body :where(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, figure, figcaption, header, section, article) { width: auto !important; }
 .reader-body p { margin-bottom: 14px; line-height: 1.75; color: var(--text); font-size: 16px; }
 .reader-body h1 { font-size: 20px; font-weight: 700; margin: 20px 0 10px; color: var(--text); }
 .reader-body h2 { font-size: 18px; font-weight: 700; margin: 18px 0 9px; color: var(--text); }

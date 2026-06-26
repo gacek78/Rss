@@ -18,6 +18,12 @@ function sanitizeContent(html) {
   const tmp = document.createElement('div')
   tmp.innerHTML = html
 
+  // Usuń elementy nie-treściowe RAZEM z zawartością. Kluczowe: <style> przeżywał
+  // (zdejmujemy atrybuty i płaszczymy div/span, ale nie kasowaliśmy samego taga),
+  // a jego reguły CSS wstrzykiwały się do czytnika i celując w ocalałe tagi
+  // (p/h1/figure) wymuszały writing-mode/width → pionowy, nakładający się tekst.
+  tmp.querySelectorAll('style, script, link, noscript, meta, base, template, svg, iframe, head').forEach(el => el.remove())
+
   // <picture> (responsive) → zwykły <img> (fallback lub pierwszy srcset)
   tmp.querySelectorAll('picture').forEach(pic => {
     let img = pic.querySelector('img')

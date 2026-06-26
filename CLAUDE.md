@@ -8,6 +8,12 @@ Vite + PWA) + backend na Cloudflare Workers (feedy, discovery, proxy artykułów
 - Push na `v2` → GitHub Actions `deploy-v2.yml` buduje i publikuje na GitHub Pages `https://gacek78.github.io/Rss/`.
 - Po zmianach we froncie commituj i pushuj na `v2`; deploy jest automatyczny (~1–3 min).
 
+## Analityka ruchu (ile osób wchodzi)
+- **Cloudflare Web Analytics** — beacon w `index.html` (przed `</body>`, snippet `static.cloudflareinsights.com/beacon.min.js`). Cookieless, nie psuje PWA.
+- Podgląd: Cloudflare dashboard → **Analytics & Logs → Web Analytics → `gacek78.github.io`**. Filtr **Path = `/Rss/`** = tylko ten czytnik (host GitHuba dzieli wszystkie projekty Pages).
+- Adblock potrafi zablokować beacon → liczby lekko zaniżone (normalne).
+- Drugi, darmowy sygnał bez kodu: **Workers & Pages → `rss-backend` → Metrics**. Liczba żądań `/api/proxy` ≈ liczba otwarć czytnika (każde otwarcie artykułu = jeden proxy-fetch).
+
 ## ⚠️ Dwa buildy frontu (NAJCZĘSTSZA PUŁAPKA)
 `vite.config.js` ustawia `base` zależnie od `CI`:
 - **GitHub Pages** (podkatalog `/Rss/`): buduj z `CI=true npx vite build` → base `/Rss/`. Bez tego CSS/JS dają 404 na Pages.

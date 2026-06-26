@@ -5,9 +5,4 @@ backend/cache.db
 .env.local
 .env.production
 backend/.wrangler/
-backend-local/node_modules/
-backend-local/.env
 .env
-.telegram
-ops/claude-brief/data/
-ops/claude-brief/.env

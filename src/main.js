@@ -1,5 +1,5 @@
 import './style.css'
-import { fetchFeedFromAPI, discoverFeedFromAPI, getLocalBackend, setLocalBackend } from './api.js'
+import { fetchFeedFromAPI, discoverFeedFromAPI } from './api.js'
 import { translateText, getCachedTranslation, saveTxCache } from './translate.js'
 import { openReader, closeReader } from './reader.js'
 
@@ -19,9 +19,6 @@ const DEFAULT_FEEDS = [
   { url: 'https://www.bankier.pl/rss/wiadomosci.xml', title: 'Bankier.pl'              },
   { url: 'https://www.focus.pl/feed',                 title: 'Focus'                   },
   { url: 'https://www.national-geographic.pl/feed',   title: 'National Geographic PL'  },
-  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',   title: 'NYT HomePage'   },
-  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',      title: 'NYT World'      },
-  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml', title: 'NYT Technology' },
 ]
 
 const REMOVED_FEEDS = [
@@ -29,6 +26,10 @@ const REMOVED_FEEDS = [
   'https://feeds.feedburner.com/TechCrunch',
   'https://feeds.bbci.co.uk/polish/rss.xml',
   'https://rss.dw.com/xml/rss-pl-all',
+  // NYT odpuszczony (paywall + DataDome) — usuwamy z istniejących subskrypcji
+  'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
+  'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
+  'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml',
 ]
 
 let feeds = []
@@ -317,34 +318,6 @@ document.getElementById('refreshBtn').addEventListener('click', fetchAll)
 document.getElementById('addFeedForm').addEventListener('submit', e => {
   e.preventDefault(); addFeed(document.getElementById('feedInput').value)
 })
-
-// Konfiguracja adresu lokalnego backendu (paywall/NYT)
-const localBackendInput = document.getElementById('localBackendInput')
-const localBackendStatus = document.getElementById('localBackendStatus')
-localBackendInput.value = getLocalBackend()
-
-function setLocalStatus(msg, cls) {
-  localBackendStatus.textContent = msg
-  localBackendStatus.className = 'local-status' + (cls ? ' ' + cls : '')
-}
-
-async function saveAndTestLocalBackend() {
-  const addr = localBackendInput.value.trim().replace(/\/+$/, '')
-  setLocalBackend(addr)
-  if (!addr) { setLocalStatus('Lokalny backend wyłączony'); showToast('Lokalny backend wyłączony'); return }
-  setLocalStatus('Sprawdzam połączenie…')
-  try {
-    const res = await fetch(`${addr}/health`, { signal: AbortSignal.timeout(6000) })
-    const data = await res.json()
-    if (data?.ok) { setLocalStatus('✓ Połączono — pełne artykuły aktywne', 'ok'); showToast('Lokalny backend zapisany') }
-    else throw new Error('zła odpowiedź')
-  } catch {
-    setLocalStatus('✗ Brak połączenia — sprawdź adres i czy kontener działa', 'err')
-  }
-}
-
-document.getElementById('localBackendSave').addEventListener('click', saveAndTestLocalBackend)
-localBackendInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveAndTestLocalBackend() } })
 
 document.getElementById('discoveryBox').addEventListener('click', e => {
   const btn = e.target.closest('[data-di]')

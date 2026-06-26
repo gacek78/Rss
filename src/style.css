@@ -108,22 +108,6 @@ header {
 }
 .feed-item:hover .feed-delete { opacity: 1; }
 .feed-delete:hover { color: var(--red); }
-.local-backend { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
-.local-backend h2 { margin-bottom: 8px; }
-.local-backend-row { display: flex; gap: 8px; }
-.local-backend input {
-  flex: 1; min-width: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-  background: var(--surface2); color: var(--text); font-size: 13px; outline: none;
-  transition: border-color 0.15s;
-}
-.local-backend input:focus { border-color: var(--primary); }
-.local-backend input::placeholder { color: var(--text3); }
-.local-backend-row .btn { white-space: nowrap; font-size: 13px; }
-.local-status { font-size: 11px; margin-top: 6px; line-height: 1.5; min-height: 1px; }
-.local-status.ok { color: #10b981; }
-.local-status.err { color: var(--red); }
-.local-hint { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
-.local-hint code { background: var(--surface2); padding: 1px 4px; border-radius: 4px; font-size: 10px; }
 
 main { flex: 1; padding: 20px 16px; min-width: 0; }
 .filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }

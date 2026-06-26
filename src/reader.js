@@ -7,7 +7,7 @@ function esc(str) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-// Sprowadza treść z Readability do prostego, blokowego HTML. Strony jak NYT
+// Sprowadza treść z Readability do prostego, blokowego HTML. Niektóre strony
 // zostawiają zagnieżdżone <div>/<span> z layoutem, responsywne <picture> i
 // placeholdery reklam, które nakładają się na tekst/obrazki w czytniku.
 // Po spłaszczeniu zostają tylko semantyczne bloki — nakładanie jest niemożliwe.

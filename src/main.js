@@ -1,6 +1,5 @@
 import './style.css'
 import { fetchFeedFromAPI, discoverFeedFromAPI } from './api.js'
-import { translateText, getCachedTranslation, saveTxCache } from './translate.js'
 import { openReader, closeReader, closeReaderNow } from './reader.js'
 
 const COLORS = [
@@ -35,8 +34,6 @@ const REMOVED_FEEDS = [
 let feeds = []
 let activeFilter = null
 let loading = false
-let translateEnabled = false
-let translating = false
 let _articleItems = []
 
 // ---------- Storage ----------
@@ -87,30 +84,11 @@ async function fetchAll() {
   loading = true; setRefreshSpin(true); renderArticles()
   await Promise.all(feeds.map(fetchFeed))
   loading = false; setRefreshSpin(false)
-  saveState(); renderSidebar()
-  if (translateEnabled) await translateVisible(); else renderArticles()
+  saveState(); renderSidebar(); renderArticles()
 }
 
 function setRefreshSpin(on) {
   document.getElementById('refreshIcon').style.animation = on ? 'spin 0.7s linear infinite' : ''
-}
-
-// ---------- Translation ----------
-async function translateVisible() {
-  translating = true; renderArticles()
-  const items = getVisible()
-  const uncached = items.filter(item => getCachedTranslation(item.title) === undefined)
-  for (let i = 0; i < uncached.length; i += 5)
-    await Promise.all(uncached.slice(i, i + 5).map(item => translateText(item.title)))
-  saveTxCache(); translating = false; renderArticles()
-}
-
-function getDisplayTitle(item) {
-  if (!translateEnabled) return esc(item.title)
-  const tx = getCachedTranslation(item.title)
-  return (tx && tx !== item.title)
-    ? esc(tx) + ' <span class="translate-badge">PL</span>'
-    : esc(item.title)
 }
 
 // ---------- Sidebar ----------
@@ -185,11 +163,6 @@ function renderArticles() {
   feeds.filter(f => f.error && (activeFilter === null || activeFilter === f.url))
     .forEach(f => { html += `<div class="error-banner">⚠ Błąd: ${esc(f.title)} — ${esc(f.error)}</div>` })
 
-  if (translating) {
-    html += '<div class="loading"><span class="spinner"></span>Tłumaczenie…</div>'
-    container.innerHTML = html; articleCount.textContent = ''; return
-  }
-
   const items = getVisible()
   _articleItems = items
 
@@ -210,7 +183,7 @@ function renderArticles() {
             <span class="source-badge" style="background:${item.feedColor}">${esc(item.feedTitle)}</span>
             <span class="article-date">${fmtDate(item.date)}</span>
           </div>
-          <div class="article-title">${getDisplayTitle(item)}</div>
+          <div class="article-title">${esc(item.title)}</div>
           ${item.desc ? `<div class="article-desc">${esc(item.desc)}</div>` : ''}
         </div>
       </div>`
@@ -270,9 +243,8 @@ function addFeedDirect(url, title) {
   const feed = { url, title: title || url, color, items: [], error: false }
   feeds.push(feed)
   saveState(); renderSidebar(); renderArticles()
-  fetchFeed(feed).then(async () => {
-    saveState(); renderSidebar()
-    if (translateEnabled) await translateVisible(); else renderArticles()
+  fetchFeed(feed).then(() => {
+    saveState(); renderSidebar(); renderArticles()
   })
   showToast('Dodano: ' + (title || url))
 }
@@ -324,15 +296,6 @@ document.getElementById('discoveryBox').addEventListener('click', e => {
   if (!btn) return
   const f = _discovered[parseInt(btn.dataset.di, 10)]
   if (f) { addFeedDirect(f.url, f.title); setDiscovery('') }
-})
-
-document.getElementById('translateBtn').addEventListener('click', async () => {
-  translateEnabled = !translateEnabled
-  const btn = document.getElementById('translateBtn')
-  btn.classList.toggle('active', translateEnabled)
-  btn.setAttribute('aria-pressed', String(translateEnabled))
-  if (translateEnabled) { showToast('Tłumaczenie włączone'); await translateVisible() }
-  else { showToast('Tłumaczenie wyłączone'); renderArticles() }
 })
 
 document.getElementById('articlesContainer').addEventListener('click', e => {

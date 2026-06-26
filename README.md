@@ -1,14 +1,13 @@
 # RSS Reader
 
 Czytnik RSS po polsku — PWA instalowalna na telefonie, z trybem czytnika (czysty
-tekst bez reklam) i tłumaczeniem EN→PL.
+tekst bez reklam).
 
 🔗 **Live:** https://gacek78.github.io/Rss/
 
 ## Funkcje
 - 📡 Agregacja kanałów RSS/Atom (polskie portale i inne źródła)
 - 📖 **Tryb czytnika** — pełny artykuł jako czysty tekst (Readability), bez reklam i ciasteczek
-- 🌍 Tłumaczenie tytułów EN→PL na żądanie
 - 🔎 Autodiscovery — wpisujesz domenę, aplikacja znajduje kanał RSS
 - 📱 **PWA** — „Dodaj do ekranu głównego", działa offline (app shell + cache feedów)
 
@@ -32,7 +31,6 @@ src/
   main.js             # stan, rendering, eventy, deep-linki #read=
   api.js              # wywołania backendu (Workers)
   reader.js           # tryb czytnika (Readability + sanitizeContent)
-  translate.js        # tłumaczenie EN→PL (MyMemory API)
   style.css
 vite.config.js        # Vite + vite-plugin-pwa; base '/Rss/' gdy CI=true
 backend/              # Cloudflare Workers (wrangler)

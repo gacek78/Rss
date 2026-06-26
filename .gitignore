@@ -6,3 +6,6 @@ backend/cache.db
 .env.production
 backend/.wrangler/
 .env
+
+# Zrzuty ekranu / robocze pliki (nie do repo)
+pliki/

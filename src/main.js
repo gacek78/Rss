@@ -312,7 +312,6 @@ document.getElementById('articlesContainer').addEventListener('keydown', e => {
   }
 })
 
-document.getElementById('readerClose').addEventListener('click', closeReader)
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReader() })
 
 ;(function () {

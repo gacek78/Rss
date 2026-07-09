@@ -17,6 +17,7 @@ const DEFAULT_FEEDS = [
   { url: 'https://www.money.pl/rss/wiadomosci.xml',   title: 'Money.pl'                },
   { url: 'https://www.bankier.pl/rss/wiadomosci.xml', title: 'Bankier.pl'              },
   { url: 'https://www.national-geographic.pl/feed',   title: 'National Geographic PL'  },
+  { url: 'https://przegladsportowy.onet.pl/.feed',    title: 'Przegląd Sportowy'       },
 ]
 
 const REMOVED_FEEDS = [

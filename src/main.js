@@ -16,7 +16,6 @@ const DEFAULT_FEEDS = [
   { url: 'https://www.chip.pl/feed',                  title: 'CHIP'                    },
   { url: 'https://www.money.pl/rss/wiadomosci.xml',   title: 'Money.pl'                },
   { url: 'https://www.bankier.pl/rss/wiadomosci.xml', title: 'Bankier.pl'              },
-  { url: 'https://www.focus.pl/feed',                 title: 'Focus'                   },
   { url: 'https://www.national-geographic.pl/feed',   title: 'National Geographic PL'  },
 ]
 

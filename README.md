@@ -79,13 +79,19 @@ const DEFAULT_FEEDS = [
 5. `npm run dev`, otwórz appkę, sprawdź czy kanał się wyświetla i pobiera artykuły.
 6. Commit + push na `v2` → deploy automatyczny.
 
-**⚠️ Najczęstszy błąd przy tej edycji** (już się zdarzył w historii tego repo):
-zaznaczenie i przypadkowe skasowanie całej istniejącej linii zamiast dodania nowej
-obok niej — zwłaszcza kopiując przez zaznaczenie w edytorze. Efekt: commit
-"dodaję kanał X", który w diffie ma tylko `-1` (usunięcie), zero dodanych linii —
-nowy kanał nigdzie się nie pojawia. **Zabezpieczenie: zawsze `git diff src/main.js`
-przed commitem** — powinno być widać dodaną linię (`+1`), a nie usuniętą (`-1`)
-w miejscu, którego nie miałeś zamiaru ruszać.
+**⚠️ Uważaj przy tej edycji:** kopiując linijkę przez zaznaczenie w edytorze łatwo
+przez pomyłkę skasować całą istniejącą linię zamiast dodać nową obok niej. Efekt:
+commit "dodaję kanał X", który w diffie ma tylko `-1` (usunięcie), zero dodanych
+linii — nowy kanał nigdzie się nie pojawia, a stary po cichu znika wszystkim.
+**Zabezpieczenie: zawsze `git diff src/main.js` przed commitem** — powinno być
+widać dodaną linię (`+1`), a nie usuniętą (`-1`) w miejscu, którego nie miałeś
+zamiaru ruszać.
+
+Jeśli natomiast chcesz **świadomie usunąć** kanał z `DEFAULT_FEEDS` (np. bo jego
+RSS realnie nie działa — zwraca same tytuły bez treści, albo daje błędy), to jest
+poprawne działanie: usuń jego linię z `DEFAULT_FEEDS` i dopisz jego URL do
+`REMOVED_FEEDS` (patrz niżej), żeby zniknął też z list już zapisanych u
+użytkowników, a nie tylko u nowych.
 
 **Bez edycji kodu** — jeśli chcesz dodać kanał tylko dla siebie (nie na stałe dla
 wszystkich), wpisz URL/domenę w pole „np. tvn24.pl lub URL RSS" w aplikacji i kliknij

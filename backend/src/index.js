@@ -44,10 +44,6 @@ app.get('/api/proxy', async c => {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
     }
-    // Opcjonalne przekazanie cookie zalogowanej sesji (np. NYT-S) dla treści za paywallem,
-    // do której użytkownik ma legalny dostęp. Cookie przekazywane przez nagłówek żądania.
-    const fwdCookie = c.req.header('X-Forward-Cookie')
-    if (fwdCookie) headers['Cookie'] = fwdCookie
     let res
     try {
       res = await fetch(url, { signal: ac.signal, headers })

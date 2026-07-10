@@ -54,6 +54,15 @@ function sanitizeContent(html) {
   // (p/h1/figure) wymuszały writing-mode/width → pionowy, nakładający się tekst.
   tmp.querySelectorAll('style, script, link, noscript, meta, base, template, svg, iframe, head').forEach(el => el.remove())
 
+  // Usuń boilerplate „data publikacji" zostawiony przez stronę wewnątrz treści
+  // artykułu (np. Bankier.pl wstawia <header> z datą powtórzoną dwa razy —
+  // raz gołą, raz z etykietą „publikacja"). Dubluje to naszą własną linijkę
+  // z datą nad artykułem, więc krótki <header> zawierający datę wycinamy całą.
+  tmp.querySelectorAll('header').forEach(header => {
+    const text = header.textContent.trim()
+    if (text.length < 150 && /\d{4}-\d{2}-\d{2}/.test(text)) header.remove()
+  })
+
   // <picture> (responsive) → zwykły <img> (fallback lub pierwszy srcset)
   tmp.querySelectorAll('picture').forEach(pic => {
     let img = pic.querySelector('img')

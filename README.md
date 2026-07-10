@@ -94,7 +94,7 @@ poprawne działanie: usuń jego linię z `DEFAULT_FEEDS` i dopisz jego URL do
 użytkowników, a nie tylko u nowych.
 
 **Bez edycji kodu** — jeśli chcesz dodać kanał tylko dla siebie (nie na stałe dla
-wszystkich), wpisz URL/domenę w pole „np. tvn24.pl lub URL RSS" w aplikacji i kliknij
+wszystkich), wpisz URL/domenę w pole „URL RSS" w aplikacji i kliknij
 `+`. To woła `/api/discover` i dodaje feed do Twojej **osobistej** listy w
 `localStorage` (klucz `rss_feeds`) — bez zmiany kodu i deployu, ale tylko na tym
 urządzeniu/przeglądarce.

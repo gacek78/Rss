@@ -76,6 +76,16 @@ function sanitizeContent(html) {
     if (AD_TEXT.includes(el.textContent.trim().toLowerCase())) el.remove()
   })
 
+  // Usuń zduplikowane obrazki (ten sam src) — niektóre strony (np. Bankier.pl)
+  // wstawiają ten sam hero image dwa razy w treści artykułu, jeden pod drugim.
+  const seenImgSrc = new Set()
+  tmp.querySelectorAll('img').forEach(img => {
+    const src = img.getAttribute('src') || ''
+    if (!src) return
+    if (seenImgSrc.has(src)) img.remove()
+    else seenImgSrc.add(src)
+  })
+
   // Zdejmij wszystkie atrybuty poza img[src,alt] i a[href]
   tmp.querySelectorAll('*').forEach(el => {
     const keep = KEEP_ATTRS[el.tagName] || []

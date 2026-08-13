@@ -144,6 +144,12 @@ function normalizeAtom(feed, feedUrl) {
 }
 
 export function parseFeedFromText(xmlText, feedUrl) {
+  // Część serwisów oddaje pod „adresem feedu" zwykłą stronę, i to z HTTP 200
+  // (np. ithardware.pl/rss). Bez tego parser dławił się zagnieżdżeniem tagów
+  // i użytkownik dostawał kryptyczne „Maximum nested tags exceeded".
+  if (/^\s*(<!doctype\s+html|<html[\s>])/i.test(xmlText)) {
+    throw new Error('Ten adres zwraca stronę HTML, a nie kanał RSS')
+  }
   const doc = parser.parse(xmlText)
   if (doc.rss?.channel) return normalizeRss(doc.rss.channel, feedUrl)
   if (doc.feed) return normalizeAtom(doc.feed, feedUrl)

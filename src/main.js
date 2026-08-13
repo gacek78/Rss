@@ -18,7 +18,7 @@ const DEFAULT_FEEDS = [
   { url: 'https://www.bankier.pl/rss/wiadomosci.xml', title: 'Bankier.pl'              },
   { url: 'https://www.national-geographic.pl/feed',   title: 'National Geographic PL'  },
   { url: 'https://przegladsportowy.onet.pl/.feed',    title: 'Przegląd Sportowy'       },
-  { url: 'https://ithardware.pl/rss.xml',              title: 'ITHardware.pl'           },
+  { url: 'https://ithardware.pl/feed',                 title: 'ITHardware.pl'           },
   { url: 'https://android.com.pl/feed',                title: 'Android.com.pl'          },
 ]
 
@@ -31,6 +31,10 @@ const REMOVED_FEEDS = [
   'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
   'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
   'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml',
+  // ITHardware: rss.xml podaje uszkodzone pubDate („Thu, pmThu, 13 Aug…" →
+  // Invalid Date, artykuły gubiły się w sortowaniu) i prefiksy [aktualnosci]
+  // w tytułach. Adres /feed jest czysty — patrz DEFAULT_FEEDS.
+  'https://ithardware.pl/rss.xml',
 ]
 
 let feeds = []

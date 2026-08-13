@@ -60,6 +60,25 @@ function richestDesc(...candidates) {
   return best.slice(0, 1500)
 }
 
+// Część feedów (np. RMF24) wkleja w <description> miniaturkę i powtórzony
+// tytuł — po zdjęciu HTML zajawka była dosłownie tym samym zdaniem co tytuł,
+// więc karta pokazywała je dwa razy. Zdejmij to echo; gdy poza tytułem nic
+// sensownego nie zostaje, lepiej nie pokazywać zajawki wcale.
+function stripTitleEcho(desc, title) {
+  if (!desc || !title) return desc
+  // podmiana 1:1 na znakach (wielkość liter, warianty cudzysłowów i myślników,
+  // twarda spacja z tytułu vs zwykła w opisie) — dzięki temu indeksy
+  // w znormalizowanym tekście pasują do oryginału
+  const norm = s => s.toLowerCase().replace(/[„”“"’‘'`]/g, '"').replace(/[–—]/g, '-').replace(/\s/g, ' ')
+  const nd = norm(desc)
+  const nt = norm(title)
+  if (nd === nt) return ''
+  if (nd.length !== desc.length || nt.length !== title.length) return desc
+  if (!nd.startsWith(nt)) return desc
+  const rest = desc.slice(title.length).replace(/^[\s.,:;–—-]+/, '')
+  return rest.length < 30 ? '' : rest
+}
+
 // Atom: link może być pojedynczy lub tablica; wybierz rel="alternate" lub bez rel
 function pickAtomLink(link) {
   const links = toArray(link)
@@ -96,10 +115,11 @@ function extractImage(item) {
 
 function normalizeRss(channel, feedUrl) {
   const items = toArray(channel.item).slice(0, 40).map(item => {
+    const title = text(item.title)
     return {
-      title: text(item.title) || '(bez tytułu)',
+      title: title || '(bez tytułu)',
       link: text(item.link) || text(item.guid) || '',
-      desc: richestDesc(item.description, item['content:encoded']),
+      desc: stripTitleEcho(richestDesc(item.description, item['content:encoded']), title),
       image: extractImage(item),
       pubDate: text(item.pubDate) || null,
       feedUrl,
@@ -110,10 +130,11 @@ function normalizeRss(channel, feedUrl) {
 
 function normalizeAtom(feed, feedUrl) {
   const items = toArray(feed.entry).slice(0, 40).map(entry => {
+    const title = text(entry.title)
     return {
-      title: text(entry.title) || '(bez tytułu)',
+      title: title || '(bez tytułu)',
       link: pickAtomLink(entry.link),
-      desc: richestDesc(entry.content, entry.summary),
+      desc: stripTitleEcho(richestDesc(entry.content, entry.summary), title),
       image: extractImage(entry),
       pubDate: text(entry.updated) || text(entry.published) || null,
       feedUrl,

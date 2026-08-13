@@ -46,8 +46,13 @@ function loadState() {
       saved = saved.filter(f => !REMOVED_FEEDS.includes(f.url))
       const existing = new Set(saved.map(f => f.url))
       DEFAULT_FEEDS.forEach(f => { if (!existing.has(f.url)) saved.push(f) })
+      // Nazwa z listy domyślnych wygrywa z <title> feedu (RMF24 podaje np.
+      // „FAKTY - FAKTY w RMF24") — naprawia też stany zapisane wcześniej,
+      // gdy front nadpisywał nazwę tytułem kanału.
+      const defaultTitles = new Map(DEFAULT_FEEDS.map(f => [f.url, f.title]))
       feeds = saved.map((f, i) => ({
-        url: f.url, title: f.title, color: f.color || COLORS[i % COLORS.length],
+        url: f.url, title: defaultTitles.get(f.url) || f.title,
+        color: f.color || COLORS[i % COLORS.length],
         items: [], error: false,
       }))
     } else {
@@ -68,7 +73,9 @@ function saveState() {
 async function fetchFeed(feed) {
   try {
     const data = await fetchFeedFromAPI(feed.url)
-    feed.title = data.title
+    // Tytuł z feedu tylko dla kanałów bez własnej nazwy (dodanych z samego
+    // URL-a) — inaczej nadpisywałby nazwę ustawioną w aplikacji.
+    if (!feed.title || feed.title === feed.url) feed.title = data.title
     feed.items = data.items.map(item => ({
       ...item,
       imgUrl: item.image,
